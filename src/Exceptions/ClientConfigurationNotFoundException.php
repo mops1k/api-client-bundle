@@ -4,7 +4,7 @@ namespace ApiClientBundle\Exceptions;
 
 use JetBrains\PhpStorm\Pure;
 
-class ClientConfigurationNotFoundException extends \Exception
+final class ClientConfigurationNotFoundException extends \Exception
 {
     #[Pure]
     public function __construct(string $className, int $code = 0, ?\Throwable $previous = null)

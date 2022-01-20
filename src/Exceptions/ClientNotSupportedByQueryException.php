@@ -7,7 +7,7 @@ use ApiClientBundle\Interfaces\QueryInterface;
 use JetBrains\PhpStorm\Internal\LanguageLevelTypeAware;
 use JetBrains\PhpStorm\Pure;
 
-class ClientNotSupportedByQueryException extends \Exception
+final class ClientNotSupportedByQueryException extends \Exception
 {
     #[Pure]
     public function __construct(

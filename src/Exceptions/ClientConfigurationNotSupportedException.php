@@ -5,7 +5,7 @@ namespace ApiClientBundle\Exceptions;
 use ApiClientBundle\Interfaces\ClientConfigurationInterface;
 use JetBrains\PhpStorm\Pure;
 
-class ClientConfigurationNotSupportedException extends \Exception
+final class ClientConfigurationNotSupportedException extends \Exception
 {
     #[Pure]
     public function __construct(object $class, int $code = 0, ?\Throwable $previous = null)
