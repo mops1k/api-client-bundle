@@ -1,6 +1,6 @@
 <?php
 
-namespace ApiClientBundle\Http;
+namespace ApiClientBundle\Model;
 
 use ApiClientBundle\Interfaces\HeadersInterface;
 use ApiClientBundle\Interfaces\StatusCodeInterface;

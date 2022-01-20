@@ -1,6 +1,6 @@
 <?php
 
-namespace ApiClientBundle\Http;
+namespace ApiClientBundle\Model;
 
 use ApiClientBundle\Interfaces\QueryInterface;
 use ApiClientBundle\Interfaces\SerializerFormatInterface;
