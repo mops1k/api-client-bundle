@@ -1,0 +1,13 @@
+services:
+    ApiClientBundle\Http\ResponseFactory:
+        arguments:
+            - '@http_client'
+
+    ApiClientBundle\Http\Client:
+        arguments:
+            - '@ApiClientBundle\Http\ResponseFactory'
+
+    ApiClientBundle\Service\Manager:
+        arguments:
+            - !tagged_iterator 'api.client'
+            - '@ApiClientBundle\Http\Client'
