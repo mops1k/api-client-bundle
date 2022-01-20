@@ -19,4 +19,6 @@ interface ClientConfigurationInterface
     public function options(): ParameterBag;
 
     public function headers(): ParameterBag;
+
+    public function isAsync(): bool;
 }

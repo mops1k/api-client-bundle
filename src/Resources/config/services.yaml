@@ -2,6 +2,7 @@ services:
     ApiClientBundle\Http\ResponseFactory:
         arguments:
             - '@http_client'
+            - '@service_container'
 
     ApiClientBundle\Http\Client:
         arguments:

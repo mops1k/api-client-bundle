@@ -4,12 +4,15 @@ namespace ApiClientBundle\Http;
 
 use ApiClientBundle\Exceptions\QueryException;
 use ApiClientBundle\Exceptions\QuerySerializationException;
+use ApiClientBundle\Exceptions\ResponseClassNotFoundException;
 use ApiClientBundle\Interfaces\ClientInterface;
 use ApiClientBundle\Interfaces\HeadersInterface;
 use ApiClientBundle\Interfaces\QueryInterface;
+use ApiClientBundle\Interfaces\SerializerFormatInterface;
 use ApiClientBundle\Interfaces\StatusCodeInterface;
 use ProxyManager\Factory\LazyLoadingGhostFactory;
 use ProxyManager\Proxy\GhostObjectInterface;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpClient\Exception\TransportException;
 use Symfony\Component\Serializer\Encoder\ChainEncoder;
 use Symfony\Component\Serializer\Encoder\CsvEncoder;
@@ -22,8 +25,13 @@ use Symfony\Component\Serializer\Normalizer\DateTimeNormalizer;
 use Symfony\Component\Serializer\Normalizer\PropertyNormalizer;
 use Symfony\Component\Serializer\Serializer;
 use Symfony\Component\Serializer\SerializerInterface;
+use Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\DecodingExceptionInterface;
+use Symfony\Contracts\HttpClient\Exception\RedirectionExceptionInterface;
+use Symfony\Contracts\HttpClient\Exception\ServerExceptionInterface;
+use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
+use Symfony\Contracts\HttpClient\ResponseInterface;
 
 final class ResponseFactory
 {
@@ -34,7 +42,7 @@ final class ResponseFactory
 
     private SerializerInterface $serializer;
 
-    public function __construct(private HttpClientInterface $httpClient)
+    public function __construct(private HttpClientInterface $httpClient, private ContainerInterface $container)
     {
         $this->serializer = new Serializer(
             [
@@ -51,8 +59,66 @@ final class ResponseFactory
         );
     }
 
+    /**
+     * @throws TransportExceptionInterface
+     * @throws ServerExceptionInterface
+     * @throws RedirectionExceptionInterface
+     * @throws ClientExceptionInterface
+     * @throws ResponseClassNotFoundException
+     * @throws \JsonException
+     */
     public function execute(ClientInterface $client, QueryInterface $query): object
     {
+        return match ($client->getConfiguration()->isAsync()) {
+            true => $this->makeAsyncRequest($client, $query),
+            false => $this->makeRequest($client, $query),
+        };
+    }
+
+    /**
+     * @throws RedirectionExceptionInterface
+     * @throws ClientExceptionInterface
+     * @throws ResponseClassNotFoundException
+     * @throws TransportExceptionInterface
+     * @throws ServerExceptionInterface
+     * @throws \JsonException
+     */
+    public function makeRequest(ClientInterface $client, QueryInterface $query): object
+    {
+        if (!$this->container->has($query->responseClassName())) {
+            throw new ResponseClassNotFoundException($query->responseClassName());
+        }
+
+        $httpClient = $this->initializeClient($client);
+
+        $response = $httpClient->request(
+            $query->method(),
+            $query->path(),
+            $this->normalizeOptions($query)
+        );
+
+        $object = $this->container->get($query->responseClassName());
+        $this->serializer->deserialize(
+            $response->getContent(false),
+            $query->responseClassName(),
+            $query->serializerResponseFormat(),
+            [AbstractNormalizer::OBJECT_TO_POPULATE => $object]
+        );
+
+        $this->addAdditionalData($response, $query, $object);
+
+        return $object;
+    }
+
+    /**
+     * @throws ResponseClassNotFoundException
+     */
+    private function makeAsyncRequest(ClientInterface $client, QueryInterface $query): object
+    {
+        if (!class_exists($query->responseClassName())) {
+            throw new ResponseClassNotFoundException($query->responseClassName());
+        }
+
         $lazyLoadingFactory = new LazyLoadingGhostFactory();
         $httpClient = $this->initializeClient($client);
 
@@ -64,27 +130,12 @@ final class ResponseFactory
             array $properties
         ) use ($httpClient, $query) {
             $initializer = null;
-            $options = \array_merge_recursive(
-                $query->options()->all(),
-                ['query' => $query->queryData()->all()],
-                ['headers' => $query->headers()->all()],
-                ['json' => $query->jsonData()->all()],
-                ['body' => $query->formData()->all()],
-            );
-            switch (true) {
-                case $options['json'] === []:
-                    unset($options['json']);
-                    break;
-                case $options['body'] === []:
-                    unset($options['body']);
-                    break;
-            }
 
             try {
                 $response = $httpClient->request(
                     $query->method(),
                     $query->path(),
-                    $options
+                    $this->normalizeOptions($query)
                 );
 
                 $this->serializer->deserialize(
@@ -94,13 +145,7 @@ final class ResponseFactory
                     [AbstractNormalizer::OBJECT_TO_POPULATE => $ghostObject]
                 );
 
-                if ($ghostObject instanceof StatusCodeInterface) {
-                    $properties["\0*\0statusCode"] = $response->getStatusCode();
-                }
-
-                if ($ghostObject instanceof HeadersInterface) {
-                    $properties["\0*\0headers"] = $response->getHeaders(false);
-                }
+                $this->addAdditionalData($response, $query, $ghostObject);
             } catch (TransportException|DecodingExceptionInterface $exception) {
                 throw new QueryException($query, $exception->getCode(), $exception);
             } catch (ExceptionInterface $exception) {
@@ -111,6 +156,61 @@ final class ResponseFactory
         };
 
         return $lazyLoadingFactory->createProxy($query->responseClassName(), $initializer);
+    }
+
+    private function normalizeOptions(QueryInterface $query): array
+    {
+        $options = \array_merge_recursive(
+            $query->options()->all(),
+            ['query' => $query->queryData()->all()],
+            ['headers' => $query->headers()->all()],
+            ['json' => $query->jsonData()->all()],
+            ['body' => $query->formData()->all()],
+        );
+        switch (true) {
+            case $options['json'] === []:
+                unset($options['json']);
+                break;
+            case $options['body'] === []:
+                unset($options['body']);
+                break;
+        }
+
+        return $options;
+    }
+
+    /**
+     * @throws TransportExceptionInterface
+     * @throws ServerExceptionInterface
+     * @throws RedirectionExceptionInterface
+     * @throws ClientExceptionInterface
+     * @throws \JsonException
+     */
+    private function addAdditionalData(ResponseInterface $response, QueryInterface $query, ?object $object): void
+    {
+        if (!$object) {
+            return;
+        }
+
+        $additionalData = [];
+        if ($object instanceof StatusCodeInterface) {
+            $additionalData["statusCode"] = $response->getStatusCode();
+        }
+
+        if ($object instanceof HeadersInterface) {
+            $additionalData["headers"] = $response->getHeaders(false);
+        }
+
+        if (!$additionalData) {
+            return;
+        }
+
+        $this->serializer->deserialize(
+            \json_encode($additionalData, JSON_THROW_ON_ERROR),
+            $query->responseClassName(),
+            SerializerFormatInterface::FORMAT_JSON,
+            [AbstractNormalizer::OBJECT_TO_POPULATE => $object]
+        );
     }
 
     private function initializeClient(ClientInterface $client): HttpClientInterface
