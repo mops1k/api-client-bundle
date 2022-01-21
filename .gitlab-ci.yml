@@ -1,4 +1,10 @@
+stages:
+  - test
+  - test_lowest_deps
+  - deploy
+
 test:
+  stage: test
   image: php:8.0-cli
   script:
     - apt-get update && apt-get install -qy unzip git
@@ -9,9 +15,18 @@ test:
     - vendor/bin/ecs --no-error-table --no-progress-bar
 
 test lowest deps:
+  stage: test_lowest_deps
   image: php:8.0-cli
   script:
     - apt-get update && apt-get install -qy unzip git
     - curl -sSf "https://getcomposer.org/installer" | php -- --filename=composer --install-dir=/usr/local/bin
     - composer update --prefer-lowest
     - vendor/bin/phpunit
+
+deploy:
+  stage: build
+  when: manual
+  script:
+    - apk add curl
+#    - apt-get update && apt-get install -qy curl
+    - 'curl --header "Job-Token: $CI_JOB_TOKEN" --data tag=<tag> "${CI_API_V4_URL}/projects/$CI_PROJECT_ID/packages/composer"'
