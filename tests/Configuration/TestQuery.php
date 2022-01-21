@@ -24,4 +24,9 @@ class TestQuery extends AbstractQuery
     {
         return TestResponse::class;
     }
+
+    public function errorResponseClassName(): string
+    {
+        return TestErrorResponse::class;
+    }
 }

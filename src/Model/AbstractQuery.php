@@ -58,6 +58,11 @@ abstract class AbstractQuery implements QueryInterface
         return $this->headers;
     }
 
+    public function errorResponseClassName(): string
+    {
+        return GenericErrorResponse::class;
+    }
+
     public function serializerResponseFormat(): string
     {
         return SerializerFormatInterface::FORMAT_JSON;

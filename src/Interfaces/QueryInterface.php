@@ -2,6 +2,7 @@
 
 namespace ApiClientBundle\Interfaces;
 
+use ApiClientBundle\Model\GenericErrorResponse;
 use Symfony\Component\HttpFoundation\ParameterBag;
 
 /**
@@ -29,6 +30,11 @@ interface QueryInterface
      * @return class-string<TResponse>
      */
     public function responseClassName(): string;
+
+    /**
+     * @return class-string<GenericErrorResponse>
+     */
+    public function errorResponseClassName(): string;
 
     /**
      * @return SerializerFormatInterface::FORMAT_*
