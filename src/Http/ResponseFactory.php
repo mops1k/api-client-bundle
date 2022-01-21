@@ -145,7 +145,7 @@ final class ResponseFactory
             $query->responseClassName(),
             $query->serializerResponseFormat()
         );
-        assert(is_a($object, $query->responseClassName(), true));
+        assert(is_a($object, $query->responseClassName(), false));
 
         $this->addAdditionalData($response, $query, $object);
 
