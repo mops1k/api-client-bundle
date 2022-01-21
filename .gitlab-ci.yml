@@ -1,6 +1,5 @@
 stages:
   - test
-  - test_lowest_deps
   - deploy
 
 test:
@@ -15,7 +14,7 @@ test:
     - vendor/bin/ecs --no-error-table --no-progress-bar
 
 test lowest deps:
-  stage: test_lowest_deps
+  stage: test
   image: php:8.0-cli
   script:
     - apt-get update && apt-get install -qy unzip git
