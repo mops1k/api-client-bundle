@@ -1,5 +1,5 @@
 {
-  "name": "pk/api-client-bundle",
+  "name": "pik-broker/api-client-bundle",
   "description": "Client for making work with any api more easy",
   "type": "symfony-bundle",
   "require": {
