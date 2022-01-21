@@ -6,6 +6,9 @@ use ApiClientBundle\Interfaces\QueryInterface;
 
 final class QuerySerializationException extends \Exception
 {
+    /**
+     * @param QueryInterface<object> $query
+     */
     public function __construct(QueryInterface $query, int $code = 0, ?\Throwable $previous = null)
     {
         $message = \sprintf(

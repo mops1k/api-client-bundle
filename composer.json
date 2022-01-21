@@ -14,11 +14,21 @@
       "ApiClientBundle\\": "src/"
     }
   },
-  "license": "MIT",
+  "license": "proprietary",
   "authors": [
     {
       "name": "Aleksandr Kvintilyanov",
       "email": "a.kvintilyanov@pik-broker.ru"
     }
-  ]
+  ],
+  "require-dev": {
+    "roave/security-advisories": "dev-latest",
+    "phpstan/phpstan": "^1.4",
+    "phpstan/phpstan-strict-rules": "^1.1",
+    "phpstan/phpstan-phpunit": "^1.0",
+    "symplify/easy-coding-standard": "^10.0"
+  },
+  "config": {
+    "sort-packages": true
+  }
 }

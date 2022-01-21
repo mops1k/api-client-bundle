@@ -60,12 +60,18 @@ final class ResponseFactory
     }
 
     /**
+     * @template TResponse of object
+     *
+     * @param QueryInterface<TResponse> $query
+     *
      * @throws TransportExceptionInterface
      * @throws ServerExceptionInterface
      * @throws RedirectionExceptionInterface
      * @throws ClientExceptionInterface
      * @throws ResponseClassNotFoundException
      * @throws \JsonException
+     *
+     * @return TResponse
      */
     public function execute(ClientInterface $client, QueryInterface $query): object
     {
@@ -76,12 +82,18 @@ final class ResponseFactory
     }
 
     /**
+     * @template TResponse of object
+     *
+     * @param QueryInterface<TResponse> $query
+     *
      * @throws RedirectionExceptionInterface
      * @throws ClientExceptionInterface
      * @throws ResponseClassNotFoundException
      * @throws TransportExceptionInterface
      * @throws ServerExceptionInterface
      * @throws \JsonException
+     *
+     * @return TResponse
      */
     public function makeRequest(ClientInterface $client, QueryInterface $query): object
     {
@@ -97,7 +109,9 @@ final class ResponseFactory
             $this->normalizeOptions($query)
         );
 
+        //todo: нельзя дёргать из контейнера, т.к. там могут быть свойства для десеарелизации в конструкторе
         $object = $this->container->get($query->responseClassName());
+        assert(is_a($object, $query->responseClassName(), true));
         $this->serializer->deserialize(
             $response->getContent(false),
             $query->responseClassName(),
@@ -111,7 +125,13 @@ final class ResponseFactory
     }
 
     /**
+     * @template TResponse of object
+     *
+     * @param QueryInterface<TResponse> $query
+     *
      * @throws ResponseClassNotFoundException
+     *
+     * @return TResponse
      */
     private function makeAsyncRequest(ClientInterface $client, QueryInterface $query): object
     {
@@ -122,12 +142,12 @@ final class ResponseFactory
         $lazyLoadingFactory = new LazyLoadingGhostFactory();
         $httpClient = $this->initializeClient($client);
 
-        $initializer = function(
+        $initializer = function (
             GhostObjectInterface $ghostObject,
             string $method,
             array $parameters,
             &$initializer,
-            array $properties
+            array $properties,
         ) use ($httpClient, $query) {
             $initializer = null;
 
@@ -158,6 +178,11 @@ final class ResponseFactory
         return $lazyLoadingFactory->createProxy($query->responseClassName(), $initializer);
     }
 
+    /**
+     * @param QueryInterface<object> $query
+     *
+     * @return array<string, mixed>
+     */
     private function normalizeOptions(QueryInterface $query): array
     {
         $options = \array_merge_recursive(
@@ -170,9 +195,11 @@ final class ResponseFactory
         switch (true) {
             case $options['json'] === []:
                 unset($options['json']);
+
                 break;
             case $options['body'] === []:
                 unset($options['body']);
+
                 break;
         }
 
@@ -180,6 +207,8 @@ final class ResponseFactory
     }
 
     /**
+     * @param QueryInterface<object> $query
+     *
      * @throws TransportExceptionInterface
      * @throws ServerExceptionInterface
      * @throws RedirectionExceptionInterface
@@ -194,11 +223,11 @@ final class ResponseFactory
 
         $additionalData = [];
         if ($object instanceof StatusCodeInterface) {
-            $additionalData["statusCode"] = $response->getStatusCode();
+            $additionalData['statusCode'] = $response->getStatusCode();
         }
 
         if ($object instanceof HeadersInterface) {
-            $additionalData["headers"] = $response->getHeaders(false);
+            $additionalData['headers'] = $response->getHeaders(false);
         }
 
         if (!$additionalData) {
@@ -225,7 +254,7 @@ final class ResponseFactory
                 $client->getConfiguration()->scheme(),
                 $client->getConfiguration()->domain()
             ),
-            'headers' => $client->getConfiguration()->headers()->all()
+            'headers' => $client->getConfiguration()->headers()->all(),
         ];
         $options = \array_merge_recursive($options, $client->getConfiguration()->options()->all());
         $this->initializedClients[$client->getConfiguration()::class] = $this->httpClient->withOptions($options);
