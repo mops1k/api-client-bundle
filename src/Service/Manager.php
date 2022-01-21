@@ -18,7 +18,7 @@ final class Manager
     /**
      * @throws ClientConfigurationNotSupportedException
      */
-    public function __construct(?iterable $clients, private Client $httClient)
+    public function __construct(?iterable $clients, private Client $httpClient)
     {
         if (!$clients) {
             return;
@@ -42,6 +42,6 @@ final class Manager
             throw new ClientConfigurationNotFoundException($className);
         }
 
-        return (clone $this->httClient)->setConfiguration($this->clients[$className]);
+        return (clone $this->httpClient)->setConfiguration($this->clients[$className]);
     }
 }

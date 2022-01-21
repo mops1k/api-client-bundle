@@ -42,7 +42,7 @@ final class ResponseFactory
 
     private SerializerInterface $serializer;
 
-    public function __construct(private HttpClientInterface $httpClient, private ContainerInterface $container)
+    public function __construct(private HttpClientInterface $httpClient, private ?ContainerInterface $container)
     {
         $this->serializer = new Serializer(
             [
@@ -85,7 +85,8 @@ final class ResponseFactory
      */
     public function makeRequest(ClientInterface $client, QueryInterface $query): object
     {
-        if (!$this->container->has($query->responseClassName())) {
+        $responseClassName = $query->responseClassName();
+        if (!class_exists($query->responseClassName())) {
             throw new ResponseClassNotFoundException($query->responseClassName());
         }
 
@@ -97,7 +98,7 @@ final class ResponseFactory
             $this->normalizeOptions($query)
         );
 
-        $object = $this->container->get($query->responseClassName());
+        $object = $this->container?->get($responseClassName) ?? new $responseClassName();
         $this->serializer->deserialize(
             $response->getContent(false),
             $query->responseClassName(),

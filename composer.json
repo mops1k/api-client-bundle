@@ -7,11 +7,20 @@
     "symfony/framework-bundle": "^5.4|^6.0",
     "symfony/http-client": "^5.4|^6.0",
     "ocramius/proxy-manager": "^2.13",
-    "symfony/serializer": "^5.4|^6.0"
+    "symfony/serializer": "^5.4|^6.0",
+    "symfony/yaml": "^6.0"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^9.5"
   },
   "autoload": {
     "psr-4": {
       "ApiClientBundle\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "ApiClientBundle\\Tests\\": "tests/"
     }
   },
   "license": "MIT",
