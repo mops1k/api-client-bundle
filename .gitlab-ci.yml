@@ -27,6 +27,7 @@ deploy:
   stage: deploy
   when: manual
   script:
+    - apt-get update && apt-get install -qy unzip git
     - apk add curl
 #    - apt-get update && apt-get install -qy curl
-    - 'curl --header "Job-Token: $CI_JOB_TOKEN" --data tag=<tag> "${CI_API_V4_URL}/projects/$CI_PROJECT_ID/packages/composer"'
+    - 'curl --header "Job-Token: $CI_JOB_TOKEN" --data tag=$(git describe --tags --abbrev=0) "${CI_API_V4_URL}/projects/$CI_PROJECT_ID/packages/composer"'
