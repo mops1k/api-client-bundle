@@ -17,6 +17,8 @@ class ApiClientTest extends TestCase
 {
     /**
      * @dataProvider responseDataProvider
+     *
+     * @param array{status: bool} $responseData
      */
     public function testSendSyncRequest(array $responseData, int $statusCode): void
     {
@@ -26,13 +28,15 @@ class ApiClientTest extends TestCase
         $query = new TestQuery();
         $response = $client->set($query);
 
-        $this->assertInstanceOf(TestResponse::class, $response);
-        $this->assertEquals($statusCode, $response->getStatusCode());
-        $this->assertEquals($responseData['status'], $response->getStatus());
+        static::assertInstanceOf(TestResponse::class, $response);
+        static::assertEquals($statusCode, $response->getStatusCode());
+        static::assertEquals($responseData['status'], $response->getStatus());
     }
 
     /**
      * @dataProvider responseDataProvider
+     *
+     * @param array{status: bool} $responseData
      */
     public function testSendAsyncRequest(array $responseData, int $statusCode): void
     {
@@ -42,14 +46,17 @@ class ApiClientTest extends TestCase
         $query = new TestQuery();
         $response = $client->set($query);
 
-        $this->assertInstanceOf(GhostObjectInterface::class, $response);
-        $this->assertFalse($response->isProxyInitialized());
-        $this->assertInstanceOf(TestResponse::class, $response);
-        $this->assertEquals($statusCode, $response->getStatusCode());
-        $this->assertEquals($responseData['status'], $response->getStatus());
-        $this->assertTrue($response->isProxyInitialized());
+        static::assertInstanceOf(GhostObjectInterface::class, $response);
+        static::assertFalse($response->isProxyInitialized());
+        static::assertInstanceOf(TestResponse::class, $response);
+        static::assertEquals($statusCode, $response->getStatusCode());
+        static::assertEquals($responseData['status'], $response->getStatus());
+        static::assertTrue($response->isProxyInitialized());
     }
 
+    /**
+     * @return iterable<array{responseData: array{status: bool}, statusCode: int}>
+     */
     public function responseDataProvider(): iterable
     {
         yield ['responseData' => ['status' => true], 'statusCode' => 200];
@@ -63,6 +70,6 @@ class ApiClientTest extends TestCase
         $mockHttpClient = new MockHttpClient($mockResponse);
         $responseFactory = new ResponseFactory($mockHttpClient, null);
 
-        return new Manager([new TestClient($isAsync),], new Client($responseFactory));
+        return new Manager([new TestClient($isAsync)], new Client($responseFactory));
     }
 }

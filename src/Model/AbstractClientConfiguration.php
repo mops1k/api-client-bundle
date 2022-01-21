@@ -3,7 +3,6 @@
 namespace ApiClientBundle\Model;
 
 use ApiClientBundle\Interfaces\ClientConfigurationInterface;
-use JetBrains\PhpStorm\Pure;
 use Symfony\Component\HttpFoundation\ParameterBag;
 
 abstract class AbstractClientConfiguration implements ClientConfigurationInterface
@@ -11,7 +10,6 @@ abstract class AbstractClientConfiguration implements ClientConfigurationInterfa
     private ParameterBag $options;
     private ParameterBag $headers;
 
-    #[Pure]
     public function __construct()
     {
         $this->options = new ParameterBag();

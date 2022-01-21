@@ -4,6 +4,9 @@ namespace ApiClientBundle\Interfaces;
 
 use Symfony\Component\HttpFoundation\ParameterBag;
 
+/**
+ * @template TResponse of object
+ */
 interface QueryInterface
 {
     public function path(): string;
@@ -23,7 +26,7 @@ interface QueryInterface
     public function support(ClientConfigurationInterface $clientConfiguration): bool;
 
     /**
-     * @return class-string<object>
+     * @return class-string<TResponse>
      */
     public function responseClassName(): string;
 

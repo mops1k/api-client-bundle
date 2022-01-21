@@ -4,17 +4,17 @@ namespace ApiClientBundle\Exceptions;
 
 use ApiClientBundle\Interfaces\ClientConfigurationInterface;
 use ApiClientBundle\Interfaces\QueryInterface;
-use JetBrains\PhpStorm\Internal\LanguageLevelTypeAware;
-use JetBrains\PhpStorm\Pure;
 
 final class ClientNotSupportedByQueryException extends \Exception
 {
-    #[Pure]
+    /**
+     * @param QueryInterface<object> $queryConfiguration
+     */
     public function __construct(
         ClientConfigurationInterface $clientConfiguration,
         QueryInterface $queryConfiguration,
         int $code = 0,
-        ?\Throwable $previous = null
+        ?\Throwable $previous = null,
     ) {
         $message = \sprintf(
             'Client %s not supported by query %s',

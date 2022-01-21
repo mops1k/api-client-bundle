@@ -23,7 +23,8 @@ class ClientConfigurationCompilerPass implements CompilerPassInterface
 
                 $definition->addTag('api.client');
                 $container->setDefinition($id, $definition);
-            } catch (\Throwable) {}
+            } catch (\Throwable) {
+            }
         }
     }
 }
