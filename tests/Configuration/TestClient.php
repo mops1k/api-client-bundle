@@ -3,11 +3,9 @@
 namespace ApiClientBundle\Tests\Configuration;
 
 use ApiClientBundle\Model\AbstractClientConfiguration;
-use JetBrains\PhpStorm\Pure;
 
 class TestClient extends AbstractClientConfiguration
 {
-    #[Pure]
     public function __construct(private bool $isAsync = false)
     {
         parent::__construct();
