@@ -1,12 +1,3 @@
-variables:
-  DOCKER_TLS_CERTDIR: ""
-
-default:
-  before_script:
-    - echo ${CI_REGISTRY_PASSWORD} | docker login -u ${CI_REGISTRY_USER} --password-stdin ${CI_REGISTRY}
-    - export DOCKER_HOST="dind:2375"
-    - ./deployment/wait-for-it.sh ${DOCKER_HOST} -t 60
-
 test:
   image: php:8.0-cli
   script:
