@@ -5,6 +5,9 @@ namespace ApiClientBundle\Tests\Configuration;
 use ApiClientBundle\Interfaces\ClientConfigurationInterface;
 use ApiClientBundle\Model\AbstractQuery;
 
+/**
+ * @extends AbstractQuery<TestResponse>
+ */
 class TestQuery extends AbstractQuery
 {
     public function path(): string

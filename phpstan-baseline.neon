@@ -1,0 +1,7 @@
+parameters:
+	ignoreErrors:
+		-
+			message: "#^Property ApiClientBundle\\\\Tests\\\\Configuration\\\\TestResponse\\:\\:\\$status is never written, only read\\.$#"
+			count: 1
+			path: tests/Configuration/TestResponse.php
+
