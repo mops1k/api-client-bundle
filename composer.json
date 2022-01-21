@@ -1,5 +1,5 @@
 {
-  "name": "kvarta/api-client-bundle",
+  "name": "pk/api-client-bundle",
   "description": "Client for making work with any api more easy",
   "type": "symfony-bundle",
   "require": {
