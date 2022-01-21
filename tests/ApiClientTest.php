@@ -4,6 +4,7 @@ namespace ApiClientBundle\Tests;
 
 use ApiClientBundle\Http\Client;
 use ApiClientBundle\Http\ResponseFactory;
+use ApiClientBundle\Model\GenericErrorResponse;
 use ApiClientBundle\Service\Manager;
 use ApiClientBundle\Tests\Configuration\TestClient;
 use ApiClientBundle\Tests\Configuration\TestQuery;
@@ -20,7 +21,7 @@ class ApiClientTest extends TestCase
      *
      * @param array{status: bool} $responseData
      */
-    public function testSendSyncRequest(array $responseData, int $statusCode): void
+    public function testSendSyncRequest(array $responseData, int $statusCode, string $expectedResponseInstance): void
     {
         $mockResponse = new MockResponse(json_encode($responseData, JSON_THROW_ON_ERROR), ['http_code' => $statusCode]);
 
@@ -28,7 +29,7 @@ class ApiClientTest extends TestCase
         $query = new TestQuery();
         $response = $client->set($query);
 
-        static::assertInstanceOf(TestResponse::class, $response);
+        static::assertInstanceOf($expectedResponseInstance, $response);
         static::assertEquals($statusCode, $response->getStatusCode());
         static::assertEquals($responseData['status'], $response->getStatus());
     }
@@ -59,16 +60,16 @@ class ApiClientTest extends TestCase
      */
     public function responseDataProvider(): iterable
     {
-        yield ['responseData' => ['status' => true], 'statusCode' => 200];
-        yield ['responseData' => ['status' => false], 'statusCode' => 400];
-        yield ['responseData' => ['status' => false], 'statusCode' => 404];
-        yield ['responseData' => ['status' => false], 'statusCode' => 500];
+        yield ['responseData' => ['status' => true], 'statusCode' => 200, 'expectedResponseInstance' => TestResponse::class];
+        yield ['responseData' => ['status' => false], 'statusCode' => 400, 'expectedResponseInstance' => GenericErrorResponse::class];
+        yield ['responseData' => ['status' => false], 'statusCode' => 404, 'expectedResponseInstance' => GenericErrorResponse::class];
+        yield ['responseData' => ['status' => false], 'statusCode' => 500, 'expectedResponseInstance' => GenericErrorResponse::class];
     }
 
     private function createMockedApiClient(MockResponse $mockResponse, bool $isAsync): Manager
     {
         $mockHttpClient = new MockHttpClient($mockResponse);
-        $responseFactory = new ResponseFactory($mockHttpClient, null);
+        $responseFactory = new ResponseFactory($mockHttpClient);
 
         return new Manager([new TestClient($isAsync)], new Client($responseFactory));
     }

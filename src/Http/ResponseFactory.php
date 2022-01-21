@@ -2,10 +2,12 @@
 
 namespace ApiClientBundle\Http;
 
+use ApiClientBundle\Exceptions\ErrorResponseException;
 use ApiClientBundle\Exceptions\QueryException;
 use ApiClientBundle\Exceptions\QuerySerializationException;
 use ApiClientBundle\Exceptions\ResponseClassNotFoundException;
 use ApiClientBundle\Interfaces\ClientInterface;
+use ApiClientBundle\Interfaces\GenericErrorResponseInterface;
 use ApiClientBundle\Interfaces\HeadersInterface;
 use ApiClientBundle\Interfaces\QueryInterface;
 use ApiClientBundle\Interfaces\SerializerFormatInterface;
@@ -42,7 +44,7 @@ final class ResponseFactory
 
     private SerializerInterface $serializer;
 
-    public function __construct(private HttpClientInterface $httpClient, private ?ContainerInterface $container)
+    public function __construct(private HttpClientInterface $httpClient)
     {
         $this->serializer = new Serializer(
             [
@@ -110,15 +112,40 @@ final class ResponseFactory
             $this->normalizeOptions($query)
         );
 
-        //todo: нельзя дёргать из контейнера, т.к. там могут быть свойства для десеарелизации в конструкторе
-        $object = $this->container?->get($responseClassName) ?? new $responseClassName();
-        assert(is_a($object, $query->responseClassName(), true));
-        $this->serializer->deserialize(
-            $response->getContent(false),
+        $content = $response->getContent(false);
+
+        if ($response->getStatusCode() >= 400) {
+            if (!is_a($query->errorResponseClassName(), GenericErrorResponseInterface::class, true)) {
+                throw new ErrorResponseException($query);
+            }
+            $data = [
+                'rawContent' => $content,
+                'statusCode' => $response->getStatusCode(),
+                'headers' => $response->getHeaders(false),
+            ];
+
+            $object = $this->serializer->deserialize(
+                $content,
+                $query->errorResponseClassName(),
+                $query->serializerResponseFormat()
+            );
+
+            $this->serializer->deserialize(
+                \json_encode($data, JSON_THROW_ON_ERROR),
+                $object::class,
+                $query->serializerResponseFormat(),
+                [AbstractNormalizer::OBJECT_TO_POPULATE => $object]
+            );
+
+            return $object;
+        }
+
+        $object = $this->serializer->deserialize(
+            $content,
             $query->responseClassName(),
-            $query->serializerResponseFormat(),
-            [AbstractNormalizer::OBJECT_TO_POPULATE => $object]
+            $query->serializerResponseFormat()
         );
+        assert(is_a($object, $query->responseClassName(), true));
 
         $this->addAdditionalData($response, $query, $object);
 
