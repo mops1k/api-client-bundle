@@ -24,7 +24,7 @@ test lowest deps:
     - vendor/bin/phpunit
 
 deploy:
-  stage: build
+  stage: deploy
   when: manual
   script:
     - apk add curl
