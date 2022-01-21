@@ -4,10 +4,13 @@ namespace ApiClientBundle\Model;
 
 use ApiClientBundle\Interfaces\QueryInterface;
 use ApiClientBundle\Interfaces\SerializerFormatInterface;
-use JetBrains\PhpStorm\Pure;
 use Symfony\Component\HttpFoundation\ParameterBag;
 use Symfony\Component\HttpFoundation\Request;
 
+/**
+ * @template TResponse of object
+ * @implements QueryInterface<TResponse>
+ */
 abstract class AbstractQuery implements QueryInterface
 {
     private ParameterBag $options;
@@ -16,7 +19,6 @@ abstract class AbstractQuery implements QueryInterface
     private ParameterBag $formData;
     private ParameterBag $headers;
 
-    #[Pure]
     public function __construct()
     {
         $this->options = new ParameterBag();

@@ -8,10 +8,15 @@
     "symfony/http-client": "^5.4|^6.0",
     "ocramius/proxy-manager": "^2.13",
     "symfony/serializer": "^5.4|^6.0",
-    "symfony/yaml": "^6.0"
+    "symfony/yaml": "^5.4|^6.0"
   },
   "require-dev": {
-    "phpunit/phpunit": "^9.5"
+    "roave/security-advisories": "dev-latest",
+    "phpunit/phpunit": "^9.5",
+    "phpstan/phpstan": "^1.4",
+    "phpstan/phpstan-strict-rules": "^1.1",
+    "phpstan/phpstan-phpunit": "^1.0",
+    "symplify/easy-coding-standard": "^10.0"
   },
   "autoload": {
     "psr-4": {
@@ -23,11 +28,14 @@
       "ApiClientBundle\\Tests\\": "tests/"
     }
   },
-  "license": "MIT",
+  "license": "proprietary",
   "authors": [
     {
       "name": "Aleksandr Kvintilyanov",
       "email": "a.kvintilyanov@pik-broker.ru"
     }
-  ]
+  ],
+  "config": {
+    "sort-packages": true
+  }
 }

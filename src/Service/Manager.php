@@ -16,6 +16,8 @@ final class Manager
     private array $clients = [];
 
     /**
+     * @param ?iterable<ClientConfigurationInterface> $clients
+     *
      * @throws ClientConfigurationNotSupportedException
      */
     public function __construct(?iterable $clients, private Client $httpClient)

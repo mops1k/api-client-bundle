@@ -6,5 +6,13 @@ interface ClientInterface
 {
     public function getConfiguration(): ClientConfigurationInterface;
     public function setConfiguration(ClientConfigurationInterface $clientConfiguration): self;
-    public function set(QueryInterface $queryConfiguration);
+
+    /**
+     * @template TResponse of object
+     *
+     * @param QueryInterface<TResponse> $queryConfiguration
+     *
+     * @return TResponse
+     */
+    public function set(QueryInterface $queryConfiguration): object;
 }
