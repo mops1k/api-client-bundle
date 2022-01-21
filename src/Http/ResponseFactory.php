@@ -14,7 +14,6 @@ use ApiClientBundle\Interfaces\SerializerFormatInterface;
 use ApiClientBundle\Interfaces\StatusCodeInterface;
 use ProxyManager\Factory\LazyLoadingGhostFactory;
 use ProxyManager\Proxy\GhostObjectInterface;
-use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpClient\Exception\TransportException;
 use Symfony\Component\Serializer\Encoder\ChainEncoder;
 use Symfony\Component\Serializer\Encoder\CsvEncoder;
