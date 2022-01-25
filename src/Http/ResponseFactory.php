@@ -98,55 +98,61 @@ final class ResponseFactory
      */
     public function makeRequest(ClientInterface $client, QueryInterface $query): object
     {
-        $responseClassName = $query->responseClassName();
-        if (!class_exists($query->responseClassName())) {
-            throw new ResponseClassNotFoundException($query->responseClassName());
-        }
-
-        $httpClient = $this->initializeClient($client);
-
-        $response = $httpClient->request(
-            $query->method(),
-            $query->path(),
-            $this->normalizeOptions($query)
-        );
-
-        $content = $response->getContent(false);
-
-        if ($response->getStatusCode() >= 400) {
-            if (!is_a($query->errorResponseClassName(), GenericErrorResponseInterface::class, true)) {
-                throw new ErrorResponseException($query);
+        try {
+            $responseClassName = $query->responseClassName();
+            if (!class_exists($responseClassName)) {
+                throw new ResponseClassNotFoundException($responseClassName);
             }
-            $data = [
-                'rawContent' => $content,
-                'statusCode' => $response->getStatusCode(),
-                'headers' => $response->getHeaders(false),
-            ];
+
+            $httpClient = $this->initializeClient($client);
+
+            $response = $httpClient->request(
+                $query->method(),
+                $query->path(),
+                $this->normalizeOptions($query)
+            );
+
+            $content = $response->getContent(false);
+
+            if ($response->getStatusCode() >= 400) {
+                if (!is_a($query->errorResponseClassName(), GenericErrorResponseInterface::class, true)) {
+                    throw new ErrorResponseException($query);
+                }
+                $data = [
+                    'rawContent' => $content,
+                    'statusCode' => $response->getStatusCode(),
+                    'headers' => $response->getHeaders(false),
+                ];
+
+                $object = $this->serializer->deserialize(
+                    $content,
+                    $query->errorResponseClassName(),
+                    $query->serializerResponseFormat()
+                );
+
+                $this->serializer->deserialize(
+                    \json_encode($data, JSON_THROW_ON_ERROR),
+                    $object::class,
+                    $query->serializerResponseFormat(),
+                    [AbstractNormalizer::OBJECT_TO_POPULATE => $object]
+                );
+
+                return $object;
+            }
 
             $object = $this->serializer->deserialize(
                 $content,
-                $query->errorResponseClassName(),
+                $responseClassName,
                 $query->serializerResponseFormat()
             );
+            assert(is_a($object, $responseClassName, false));
 
-            $this->serializer->deserialize(
-                \json_encode($data, JSON_THROW_ON_ERROR),
-                $object::class,
-                $query->serializerResponseFormat(),
-                [AbstractNormalizer::OBJECT_TO_POPULATE => $object]
-            );
-
-            return $object;
+            $this->addAdditionalData($response, $query, $object);
+        } catch (TransportException|DecodingExceptionInterface $exception) {
+            throw new QueryException($query, $exception->getCode(), $exception);
+        } catch (ExceptionInterface $exception) {
+            throw new QuerySerializationException($query, $exception->getCode(), $exception);
         }
-
-        $object = $this->serializer->deserialize(
-            $content,
-            $query->responseClassName(),
-            $query->serializerResponseFormat()
-        );
-        assert(is_a($object, $query->responseClassName(), false));
-
-        $this->addAdditionalData($response, $query, $object);
 
         return $object;
     }

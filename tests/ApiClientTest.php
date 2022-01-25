@@ -5,7 +5,7 @@ namespace ApiClientBundle\Tests;
 use ApiClientBundle\Http\Client;
 use ApiClientBundle\Http\ResponseFactory;
 use ApiClientBundle\Model\GenericErrorResponse;
-use ApiClientBundle\Service\Manager;
+use ApiClientBundle\Service\ApiClientFactory;
 use ApiClientBundle\Tests\Configuration\TestClient;
 use ApiClientBundle\Tests\Configuration\TestQuery;
 use ApiClientBundle\Tests\Configuration\TestResponse;
@@ -27,7 +27,7 @@ class ApiClientTest extends TestCase
 
         $client = $this->createMockedApiClient($mockResponse, false)->use(TestClient::class);
         $query = new TestQuery();
-        $response = $client->set($query);
+        $response = $client->request($query);
 
         static::assertInstanceOf($expectedResponseInstance, $response);
         static::assertEquals($statusCode, $response->getStatusCode());
@@ -45,7 +45,7 @@ class ApiClientTest extends TestCase
 
         $client = $this->createMockedApiClient($mockResponse, true)->use(TestClient::class);
         $query = new TestQuery();
-        $response = $client->set($query);
+        $response = $client->request($query);
 
         static::assertInstanceOf(GhostObjectInterface::class, $response);
         static::assertFalse($response->isProxyInitialized());
@@ -66,11 +66,11 @@ class ApiClientTest extends TestCase
         yield ['responseData' => ['status' => false], 'statusCode' => 500, 'expectedResponseInstance' => GenericErrorResponse::class];
     }
 
-    private function createMockedApiClient(MockResponse $mockResponse, bool $isAsync): Manager
+    private function createMockedApiClient(MockResponse $mockResponse, bool $isAsync): ApiClientFactory
     {
         $mockHttpClient = new MockHttpClient($mockResponse);
         $responseFactory = new ResponseFactory($mockHttpClient);
 
-        return new Manager([new TestClient($isAsync)], new Client($responseFactory));
+        return new ApiClientFactory([new TestClient($isAsync)], new Client($responseFactory));
     }
 }

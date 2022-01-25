@@ -6,7 +6,7 @@ use ApiClientBundle\Model\AbstractResponse;
 
 class TestResponse extends AbstractResponse
 {
-    private bool $status;
+    protected bool $status;
 
     public function getStatus(): bool
     {

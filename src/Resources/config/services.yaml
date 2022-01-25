@@ -8,7 +8,7 @@ services:
         arguments:
             - '@ApiClientBundle\Http\ResponseFactory'
 
-    ApiClientBundle\Service\Manager:
+    ApiClientBundle\Service\ApiClientFactory:
         arguments:
             - !tagged_iterator 'api.client'
             - '@ApiClientBundle\Http\Client'
