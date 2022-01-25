@@ -2,7 +2,9 @@
 
 namespace ApiClientBundle\Exceptions;
 
-final class ResponseClassNotFoundException extends \Exception
+use ApiClientBundle\Interfaces\ApiClientExceptionInterface;
+
+final class ResponseClassNotFoundException extends \Exception implements ApiClientExceptionInterface
 {
     public function __construct(string $objectName, int $code = 0, ?\Throwable $previous = null)
     {

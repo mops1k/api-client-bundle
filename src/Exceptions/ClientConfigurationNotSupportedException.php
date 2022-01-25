@@ -2,9 +2,10 @@
 
 namespace ApiClientBundle\Exceptions;
 
+use ApiClientBundle\Interfaces\ApiClientExceptionInterface;
 use ApiClientBundle\Interfaces\ClientConfigurationInterface;
 
-final class ClientConfigurationNotSupportedException extends \Exception
+final class ClientConfigurationNotSupportedException extends \Exception implements ApiClientExceptionInterface
 {
     public function __construct(object $class, int $code = 0, ?\Throwable $previous = null)
     {

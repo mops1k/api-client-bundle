@@ -2,7 +2,9 @@
 
 namespace ApiClientBundle\Exceptions;
 
-final class ClientConfigurationNotFoundException extends \Exception
+use ApiClientBundle\Interfaces\ApiClientExceptionInterface;
+
+final class ClientConfigurationNotFoundException extends \Exception implements ApiClientExceptionInterface
 {
     public function __construct(string $className, int $code = 0, ?\Throwable $previous = null)
     {

@@ -2,9 +2,10 @@
 
 namespace ApiClientBundle\Exceptions;
 
+use ApiClientBundle\Interfaces\ApiClientExceptionInterface;
 use ApiClientBundle\Interfaces\QueryInterface;
 
-final class QuerySerializationException extends \Exception
+final class QuerySerializationException extends \Exception implements ApiClientExceptionInterface
 {
     /**
      * @param QueryInterface<object> $query
