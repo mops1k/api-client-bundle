@@ -22,7 +22,7 @@ final class Client implements ClientInterface
         return $this;
     }
 
-    public function set(QueryInterface $queryConfiguration): object
+    public function request(QueryInterface $queryConfiguration): object
     {
         if (!$queryConfiguration->support($this->getConfiguration())) {
             throw new ClientNotSupportedByQueryException($this->getConfiguration(), $queryConfiguration);

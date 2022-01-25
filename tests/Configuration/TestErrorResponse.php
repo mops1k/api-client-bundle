@@ -6,7 +6,7 @@ use ApiClientBundle\Model\GenericErrorResponse;
 
 class TestErrorResponse extends GenericErrorResponse
 {
-    private bool $status;
+    protected bool $status;
 
     public function getStatus(): bool
     {

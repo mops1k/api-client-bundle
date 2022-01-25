@@ -8,7 +8,7 @@ use ApiClientBundle\Http\Client;
 use ApiClientBundle\Interfaces\ClientConfigurationInterface;
 use ApiClientBundle\Interfaces\ClientInterface;
 
-final class Manager
+final class ApiClientFactory
 {
     /**
      * @var array<class-string<ClientConfigurationInterface>, ClientConfigurationInterface>
@@ -36,6 +36,8 @@ final class Manager
     }
 
     /**
+     * @param class-string<ClientConfigurationInterface> $className
+     *
      * @throws ClientConfigurationNotFoundException
      */
     public function use(string $className): ClientInterface

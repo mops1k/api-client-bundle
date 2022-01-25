@@ -54,5 +54,3 @@ parameters:
     ignoreErrors:
         - path: ecs.php
           message: '#Class PhpCsFixer\\.+ not found#'
-        - path: tests/
-          message: '#Property .+::\$.* is never written, only read#'

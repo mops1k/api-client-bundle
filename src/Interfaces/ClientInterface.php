@@ -14,5 +14,5 @@ interface ClientInterface
      *
      * @return TResponse
      */
-    public function set(QueryInterface $queryConfiguration): object;
+    public function request(QueryInterface $queryConfiguration): object;
 }
