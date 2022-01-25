@@ -2,10 +2,11 @@
 
 namespace ApiClientBundle\Exceptions;
 
+use ApiClientBundle\Interfaces\ApiClientExceptionInterface;
 use ApiClientBundle\Interfaces\GenericErrorResponseInterface;
 use ApiClientBundle\Interfaces\QueryInterface;
 
-class ErrorResponseException extends \Exception
+class ErrorResponseException extends \Exception implements ApiClientExceptionInterface
 {
     /**
      * @param QueryInterface<object> $query
