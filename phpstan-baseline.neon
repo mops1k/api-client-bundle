@@ -5,3 +5,8 @@ parameters:
 			count: 1
 			path: src/Model/GenericErrorResponse.php
 
+		-
+			message: "#^Method ApiClientBundle\\\\Tests\\\\ApiClientTest\\:\\:responseDataProvider\\(\\) return type with generic class ApiClientBundle\\\\Model\\\\AbstractQuery does not specify its types\\: TResponse$#"
+			count: 1
+			path: tests/ApiClientTest.php
+
