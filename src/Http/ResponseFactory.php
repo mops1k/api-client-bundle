@@ -41,23 +41,23 @@ final class ResponseFactory
      */
     private array $initializedClients = [];
 
-    private SerializerInterface $serializer;
-
-    public function __construct(private HttpClientInterface $httpClient)
+    public function __construct(private HttpClientInterface $httpClient, private ?SerializerInterface $serializer = null)
     {
-        $this->serializer = new Serializer(
-            [
-                new PropertyNormalizer(),
-                new DateTimeNormalizer(),
-            ],
-            [
-                new XmlEncoder(),
-                new JsonEncoder(),
-                new CsvEncoder(),
-                new YamlEncoder(),
-                new ChainEncoder(),
-            ]
-        );
+        if (!$serializer) {
+            $this->serializer = new Serializer(
+                [
+                    new PropertyNormalizer(),
+                    new DateTimeNormalizer(),
+                ],
+                [
+                    new XmlEncoder(),
+                    new JsonEncoder(),
+                    new CsvEncoder(),
+                    new YamlEncoder(),
+                    new ChainEncoder(),
+                ]
+            );
+        }
     }
 
     /**
