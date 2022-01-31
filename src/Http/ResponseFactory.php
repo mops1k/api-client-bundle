@@ -15,16 +15,8 @@ use ApiClientBundle\Interfaces\StatusCodeInterface;
 use ProxyManager\Factory\LazyLoadingGhostFactory;
 use ProxyManager\Proxy\GhostObjectInterface;
 use Symfony\Component\HttpClient\Exception\TransportException;
-use Symfony\Component\Serializer\Encoder\ChainEncoder;
-use Symfony\Component\Serializer\Encoder\CsvEncoder;
-use Symfony\Component\Serializer\Encoder\JsonEncoder;
-use Symfony\Component\Serializer\Encoder\XmlEncoder;
-use Symfony\Component\Serializer\Encoder\YamlEncoder;
 use Symfony\Component\Serializer\Exception\ExceptionInterface;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
-use Symfony\Component\Serializer\Normalizer\DateTimeNormalizer;
-use Symfony\Component\Serializer\Normalizer\PropertyNormalizer;
-use Symfony\Component\Serializer\Serializer;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\DecodingExceptionInterface;
@@ -41,23 +33,10 @@ final class ResponseFactory
      */
     private array $initializedClients = [];
 
-    private SerializerInterface $serializer;
-
-    public function __construct(private HttpClientInterface $httpClient)
-    {
-        $this->serializer = new Serializer(
-            [
-                new PropertyNormalizer(),
-                new DateTimeNormalizer(),
-            ],
-            [
-                new XmlEncoder(),
-                new JsonEncoder(),
-                new CsvEncoder(),
-                new YamlEncoder(),
-                new ChainEncoder(),
-            ]
-        );
+    public function __construct(
+        private HttpClientInterface $httpClient,
+        private SerializerInterface $serializer,
+    ) {
     }
 
     /**

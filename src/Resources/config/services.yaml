@@ -2,7 +2,7 @@ services:
     ApiClientBundle\Http\ResponseFactory:
         arguments:
             - '@http_client'
-            - '@service_container'
+            - '@serializer'
 
     ApiClientBundle\Http\Client:
         arguments:

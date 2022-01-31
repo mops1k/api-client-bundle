@@ -1,6 +1,6 @@
 <?php
 
-namespace ApiClientBundle\Tests\Configuration;
+namespace ApiClientBundle\Tests\Fixtures;
 
 use ApiClientBundle\Model\GenericErrorResponse;
 
