@@ -53,10 +53,8 @@ class ApiClientTest extends TestCase
         static::assertInstanceOf($expectedResponseInstance, $response);
         static::assertEquals($statusCode, $response->getStatusCode());
         if (null !== $responseAssertion) {
-            assert($response instanceof $expectedResponseInstance);
             static::assertTrue($responseAssertion($responseData, $response));
         }
-        // static::assertEquals($responseData['status'], $response->getStatus());
     }
 
     /**
@@ -84,10 +82,11 @@ class ApiClientTest extends TestCase
         static::assertFalse($response->isProxyInitialized());
         static::assertInstanceOf(TestResponse::class, $response);
         static::assertEquals($statusCode, $response->getStatusCode());
-        // static::assertEquals($responseData['status'], $response->getStatus());
         if (null !== $responseAssertion) {
             // todo: ответы с ошибками заворачиваются в TestResponse всё равно, это неправильно
             // static::assertTrue($responseAssertion($responseData, $response));
+            // todo: удалить после исправления замечания выше
+            static::assertEquals($responseData['status'], $response->getStatus());
         }
         static::assertTrue($response->isProxyInitialized());
         // todo: проверить что в $response нужный класс ответа
