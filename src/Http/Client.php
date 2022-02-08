@@ -31,9 +31,6 @@ final class Client implements ClientInterface
         return $this->responseFactory->execute($this, $queryConfiguration);
     }
 
-    /**
-     * @internal
-     */
     public function getConfiguration(): ClientConfigurationInterface
     {
         return $this->configuration;
