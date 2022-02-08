@@ -6,7 +6,10 @@ use ApiClientBundle\Interfaces\GenericErrorResponseInterface;
 
 class GenericErrorResponse extends AbstractResponse implements GenericErrorResponseInterface
 {
-    private string $rawContent;
+    // todo: разобраться почему это работает только с public: private/protected не заполняется сериализатором
+    // хотя PropertyNormalizer вроде должен и private заполнять
+    // todo: и нужно на это написать тест
+    public string $rawContent;
 
     public function getRawContent(): string
     {
