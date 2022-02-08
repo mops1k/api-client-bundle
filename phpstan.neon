@@ -36,6 +36,7 @@ parameters:
     excludePaths:
         analyseAndScan:
             - vendor/
+            - var/
     reportUnmatchedIgnoredErrors: false
     polluteScopeWithLoopInitialAssignments: false
     polluteScopeWithAlwaysIterableForeach: false

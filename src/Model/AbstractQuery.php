@@ -9,7 +9,8 @@ use Symfony\Component\HttpFoundation\Request;
 
 /**
  * @template TResponse of object
- * @implements QueryInterface<TResponse>
+ * @template TErrorResponse of GenericErrorResponse
+ * @implements QueryInterface<TResponse, TErrorResponse>
  */
 abstract class AbstractQuery implements QueryInterface
 {
@@ -56,11 +57,6 @@ abstract class AbstractQuery implements QueryInterface
     public function headers(): ParameterBag
     {
         return $this->headers;
-    }
-
-    public function errorResponseClassName(): string
-    {
-        return GenericErrorResponse::class;
     }
 
     public function serializerResponseFormat(): string

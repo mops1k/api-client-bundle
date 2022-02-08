@@ -6,7 +6,7 @@ use ApiClientBundle\Interfaces\ClientConfigurationInterface;
 use ApiClientBundle\Model\AbstractQuery;
 
 /**
- * @extends AbstractQuery<TestResponse>
+ * @extends AbstractQuery<TestResponse, TestErrorResponse>
  */
 class TestQuery extends AbstractQuery
 {

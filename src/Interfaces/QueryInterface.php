@@ -7,6 +7,7 @@ use Symfony\Component\HttpFoundation\ParameterBag;
 
 /**
  * @template TResponse of object
+ * @template TErrorResponse of GenericErrorResponse
  */
 interface QueryInterface
 {
@@ -32,7 +33,7 @@ interface QueryInterface
     public function responseClassName(): string;
 
     /**
-     * @return class-string<GenericErrorResponse>
+     * @return class-string<TErrorResponse>
      */
     public function errorResponseClassName(): string;
 
