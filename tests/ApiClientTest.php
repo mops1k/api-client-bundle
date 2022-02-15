@@ -5,7 +5,6 @@ namespace ApiClientBundle\Tests;
 use ApiClientBundle\Http\Client;
 use ApiClientBundle\Http\ResponseFactory;
 use ApiClientBundle\Interfaces\QueryInterface;
-use ApiClientBundle\Model\AbstractQuery;
 use ApiClientBundle\Model\AbstractResponse;
 use ApiClientBundle\Model\GenericErrorResponse;
 use ApiClientBundle\Service\ApiClientFactory;
