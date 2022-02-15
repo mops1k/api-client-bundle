@@ -8,7 +8,7 @@ use ApiClientBundle\Interfaces\ClientConfigurationInterface;
 use ApiClientBundle\Model\AbstractQuery;
 
 /**
- * @extends AbstractQuery<SerializedNameResponse>
+ * @extends AbstractQuery<SerializedNameResponse, TestErrorResponse>
  */
 class SerializedNameQuery extends AbstractQuery
 {

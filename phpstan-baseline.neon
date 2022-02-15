@@ -1,12 +1,7 @@
 parameters:
 	ignoreErrors:
 		-
-			message: "#^Property ApiClientBundle\\\\Model\\\\GenericErrorResponse\\:\\:\\$rawContent is never written, only read\\.$#"
-			count: 1
-			path: src/Model/GenericErrorResponse.php
-
-		-
-			message: "#^Method ApiClientBundle\\\\Tests\\\\ApiClientTest\\:\\:responseDataProvider\\(\\) return type with generic class ApiClientBundle\\\\Model\\\\AbstractQuery does not specify its types\\: TResponse$#"
+			message: "#^Method ApiClientBundle\\\\Tests\\\\ApiClientTest\\:\\:responseDataProvider\\(\\) return type with generic interface ApiClientBundle\\\\Interfaces\\\\QueryInterface does not specify its types\\: TResponse, TErrorResponse$#"
 			count: 1
 			path: tests/ApiClientTest.php
 

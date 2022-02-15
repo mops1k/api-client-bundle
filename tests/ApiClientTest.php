@@ -4,8 +4,10 @@ namespace ApiClientBundle\Tests;
 
 use ApiClientBundle\Http\Client;
 use ApiClientBundle\Http\ResponseFactory;
+use ApiClientBundle\Interfaces\QueryInterface;
 use ApiClientBundle\Model\AbstractQuery;
 use ApiClientBundle\Model\AbstractResponse;
+use ApiClientBundle\Model\GenericErrorResponse;
 use ApiClientBundle\Service\ApiClientFactory;
 use ApiClientBundle\Tests\Fixtures\SerializedNameQuery;
 use ApiClientBundle\Tests\Fixtures\SerializedNameResponse;
@@ -26,13 +28,16 @@ class ApiClientTest extends KernelTestCase
     /**
      * @dataProvider responseDataProvider
      *
-     * @param class-string<AbstractQuery<object>> $queryClass
+     * @template TResponse of object
+     * @template TErrorResponse of GenericErrorResponse
+     *
+     * @param QueryInterface<TResponse, TErrorResponse> $query
      * @param array<mixed>|string $responseData
      * @param class-string<AbstractResponse> $expectedResponseInstance
      * @param TAssertCallable|null $responseAssertion
      */
     public function testSendSyncRequest(
-        string $queryClass,
+        QueryInterface $query,
         array|string $responseData,
         int $statusCode,
         string $expectedResponseInstance,
@@ -41,7 +46,6 @@ class ApiClientTest extends KernelTestCase
         $mockResponse = new MockResponse(json_encode($responseData, JSON_THROW_ON_ERROR), ['http_code' => $statusCode]);
 
         $client = $this->createMockedApiClient($mockResponse, false)->use(TestClient::class);
-        $query = new $queryClass();
         $response = $client->request($query);
 
         static::assertInstanceOf($expectedResponseInstance, $response);
@@ -54,13 +58,16 @@ class ApiClientTest extends KernelTestCase
     /**
      * @dataProvider responseDataProvider
      *
-     * @param class-string<AbstractQuery<object>> $queryClass
+     * @template TResponse of object
+     * @template TErrorResponse of GenericErrorResponse
+     *
+     * @param QueryInterface<TResponse, TErrorResponse> $queryObject
      * @param array<mixed>|string $responseData
      * @param class-string<AbstractResponse> $expectedResponseInstance
      * @param TAssertCallable|null $responseAssertion
      */
     public function testSendAsyncRequest(
-        string $queryClass,
+        QueryInterface $queryObject,
         array|string $responseData,
         int $statusCode,
         string $expectedResponseInstance,
@@ -69,11 +76,13 @@ class ApiClientTest extends KernelTestCase
         $mockResponse = new MockResponse(json_encode($responseData, JSON_THROW_ON_ERROR), ['http_code' => $statusCode]);
 
         $client = $this->createMockedApiClient($mockResponse, true)->use(TestClient::class);
+        // todo: тут у нас всегда TestQuery, а должен быть из провайдера
         $query = new TestQuery();
         $response = $client->request($query);
 
         static::assertInstanceOf(GhostObjectInterface::class, $response);
         static::assertFalse($response->isProxyInitialized());
+        // todo: $expectedResponseInstance
         static::assertInstanceOf(TestResponse::class, $response);
         static::assertEquals($statusCode, $response->getStatusCode());
         // if (null !== $responseAssertion) {
@@ -90,7 +99,7 @@ class ApiClientTest extends KernelTestCase
 
     /**
      * @return iterable<array{
-     *     query: class-string<AbstractQuery>,
+     *     query: QueryInterface,
      *     responseData: array<mixed>,
      *     statusCode: int,
      *     expectedResponseInstance: class-string<AbstractResponse>,
@@ -103,7 +112,7 @@ class ApiClientTest extends KernelTestCase
         $assertion2 = static fn (array $responseData, TestErrorResponse $response): bool => $responseData['status'] === $response->getStatus();
 
         yield [
-            'query' => TestQuery::class,
+            'query' => new TestQuery(),
             'responseData' => ['status' => false],
             'statusCode' => 500,
             'expectedResponseInstance' => TestErrorResponse::class,
@@ -114,28 +123,28 @@ class ApiClientTest extends KernelTestCase
         ];
 
         yield [
-            'query' => TestQuery::class,
+            'query' => new TestQuery(),
             'responseData' => ['status' => true],
             'statusCode' => 200,
             'expectedResponseInstance' => TestResponse::class,
             'assert' => $assertion1,
         ];
         yield [
-            'query' => TestQuery::class,
+            'query' => new TestQuery(),
             'responseData' => ['status' => false],
             'statusCode' => 400,
             'expectedResponseInstance' => TestErrorResponse::class,
             'assert' => $assertion2,
         ];
         yield [
-            'query' => TestQuery::class,
+            'query' => new TestQuery(),
             'responseData' => ['status' => false],
             'statusCode' => 404,
             'expectedResponseInstance' => TestErrorResponse::class,
             'assert' => $assertion2,
         ];
         yield [
-            'query' => TestQuery::class,
+            'query' => new TestQuery(),
             'responseData' => ['status' => false],
             'statusCode' => 500,
             'expectedResponseInstance' => TestErrorResponse::class,
@@ -143,7 +152,7 @@ class ApiClientTest extends KernelTestCase
         ];
 
         yield [
-            'query' => SerializedNameQuery::class,
+            'query' => new SerializedNameQuery(),
             'responseData' => ['status' => true, 'foo_bar' => 'test'],
             'statusCode' => 200,
             'expectedResponseInstance' => SerializedNameResponse::class,

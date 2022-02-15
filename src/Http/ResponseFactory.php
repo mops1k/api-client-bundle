@@ -11,6 +11,7 @@ use ApiClientBundle\Interfaces\GenericErrorResponseInterface;
 use ApiClientBundle\Interfaces\HeadersInterface;
 use ApiClientBundle\Interfaces\QueryInterface;
 use ApiClientBundle\Interfaces\StatusCodeInterface;
+use ApiClientBundle\Model\GenericErrorResponse;
 use Doctrine\Common\Annotations\AnnotationReader;
 use ProxyManager\Factory\LazyLoadingGhostFactory;
 use ProxyManager\Proxy\GhostObjectInterface;
