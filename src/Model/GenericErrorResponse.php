@@ -9,7 +9,7 @@ class GenericErrorResponse extends AbstractResponse implements GenericErrorRespo
     // todo: разобраться почему это работает только с public: private/protected не заполняется сериализатором
     // хотя PropertyNormalizer вроде должен и private заполнять
     // todo: и нужно на это написать тест
-    public string $rawContent;
+    protected string $rawContent;
 
     public function getRawContent(): string
     {

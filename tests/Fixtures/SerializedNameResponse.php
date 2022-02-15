@@ -10,5 +10,5 @@ use Symfony\Component\Serializer\Annotation\SerializedName;
 class SerializedNameResponse extends AbstractResponse
 {
     #[SerializedName('foo_bar')]
-    public int $renamed;
+    public string $renamed;
 }
