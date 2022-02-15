@@ -12,16 +12,15 @@ use ApiClientBundle\Interfaces\HeadersInterface;
 use ApiClientBundle\Interfaces\QueryInterface;
 use ApiClientBundle\Interfaces\SerializerFormatInterface;
 use ApiClientBundle\Interfaces\StatusCodeInterface;
+use ApiClientBundle\Model\GenericErrorResponse;
 use ProxyManager\Factory\LazyLoadingGhostFactory;
 use ProxyManager\Proxy\GhostObjectInterface;
 use Symfony\Component\HttpClient\Exception\TransportException;
-use Symfony\Component\Serializer\Exception\ExceptionInterface;
+use Symfony\Component\Serializer\Exception\ExceptionInterface as SerializerExceptionInterfaceAlias;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use Symfony\Component\Serializer\SerializerInterface;
-use Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\DecodingExceptionInterface;
-use Symfony\Contracts\HttpClient\Exception\RedirectionExceptionInterface;
-use Symfony\Contracts\HttpClient\Exception\ServerExceptionInterface;
+use Symfony\Contracts\HttpClient\Exception\ExceptionInterface as HttpClientExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Symfony\Contracts\HttpClient\ResponseInterface;
@@ -41,21 +40,19 @@ final class ResponseFactory
 
     /**
      * @template TResponse of object
+     * @template TErrorResponse of GenericErrorResponse
      *
-     * @param QueryInterface<TResponse> $query
+     * @param QueryInterface<TResponse, TErrorResponse> $query
      *
-     * @throws TransportExceptionInterface
-     * @throws ServerExceptionInterface
-     * @throws RedirectionExceptionInterface
-     * @throws ClientExceptionInterface
-     * @throws ResponseClassNotFoundException
-     * @throws \JsonException
+     * @throws QueryException
+     * @throws QuerySerializationException
      *
-     * @return TResponse
+     * @return TResponse|TErrorResponse
      */
     public function execute(ClientInterface $client, QueryInterface $query): object
     {
         return match ($client->getConfiguration()->isAsync()) {
+            // todo: вынести async вариант в отдельный класс
             true => $this->makeAsyncRequest($client, $query),
             false => $this->makeRequest($client, $query),
         };
@@ -63,17 +60,14 @@ final class ResponseFactory
 
     /**
      * @template TResponse of object
+     * @template TErrorResponse of GenericErrorResponse
      *
-     * @param QueryInterface<TResponse> $query
+     * @param QueryInterface<TResponse, TErrorResponse> $query
      *
-     * @throws RedirectionExceptionInterface
-     * @throws ClientExceptionInterface
-     * @throws ResponseClassNotFoundException
-     * @throws TransportExceptionInterface
-     * @throws ServerExceptionInterface
-     * @throws \JsonException
+     * @throws QueryException
+     * @throws QuerySerializationException
      *
-     * @return TResponse
+     * @return TResponse|TErrorResponse
      */
     public function makeRequest(ClientInterface $client, QueryInterface $query): object
     {
@@ -92,6 +86,9 @@ final class ResponseFactory
             );
 
             $content = $response->getContent(false);
+
+            // todo: избавиться от json_encode и deserialize(): можно использовать denormalize() без конвертации в json
+            // todo: тут особенно актуально, т.к. делается много раз
 
             if ($response->getStatusCode() >= 400) {
                 if (!is_a($query->errorResponseClassName(), GenericErrorResponseInterface::class, true)) {
@@ -127,9 +124,9 @@ final class ResponseFactory
             assert(is_a($object, $responseClassName, false));
 
             $this->addAdditionalData($response, $query, $object);
-        } catch (TransportException|DecodingExceptionInterface $exception) {
+        } catch (HttpClientExceptionInterface|DecodingExceptionInterface $exception) {
             throw new QueryException($query, $exception->getCode(), $exception);
-        } catch (ExceptionInterface $exception) {
+        } catch (SerializerExceptionInterfaceAlias $exception) {
             throw new QuerySerializationException($query, $exception->getCode(), $exception);
         }
 
@@ -138,12 +135,13 @@ final class ResponseFactory
 
     /**
      * @template TResponse of object
+     * @template TErrorResponse of GenericErrorResponse
      *
-     * @param QueryInterface<TResponse> $query
+     * @param QueryInterface<TResponse, TErrorResponse> $query
      *
      * @throws ResponseClassNotFoundException
      *
-     * @return TResponse
+     * @return TResponse|TErrorResponse
      */
     private function makeAsyncRequest(ClientInterface $client, QueryInterface $query): object
     {
@@ -180,7 +178,7 @@ final class ResponseFactory
                 $this->addAdditionalData($response, $query, $ghostObject);
             } catch (TransportException|DecodingExceptionInterface $exception) {
                 throw new QueryException($query, $exception->getCode(), $exception);
-            } catch (ExceptionInterface $exception) {
+            } catch (SerializerExceptionInterfaceAlias $exception) {
                 throw new QuerySerializationException($query, $exception->getCode(), $exception);
             }
 
@@ -191,7 +189,10 @@ final class ResponseFactory
     }
 
     /**
-     * @param QueryInterface<object> $query
+     * @template TResponse of object
+     * @template TErrorResponse of GenericErrorResponse
+     *
+     * @param QueryInterface<TResponse, TErrorResponse> $query
      *
      * @return array<string, mixed>
      */
@@ -219,13 +220,12 @@ final class ResponseFactory
     }
 
     /**
-     * @param QueryInterface<object> $query
+     * @template TResponse of object
+     * @template TErrorResponse of GenericErrorResponse
+     *
+     * @param QueryInterface<TResponse, TErrorResponse> $query
      *
      * @throws TransportExceptionInterface
-     * @throws ServerExceptionInterface
-     * @throws RedirectionExceptionInterface
-     * @throws ClientExceptionInterface
-     * @throws \JsonException
      */
     private function addAdditionalData(ResponseInterface $response, QueryInterface $query, ?object $object): void
     {
@@ -246,6 +246,7 @@ final class ResponseFactory
             return;
         }
 
+        // todo: избавиться от json_encode и deserialize(): можно использовать denormalize() без конвертации в json
         $this->serializer->deserialize(
             \json_encode($additionalData, JSON_THROW_ON_ERROR),
             $query->responseClassName(),
