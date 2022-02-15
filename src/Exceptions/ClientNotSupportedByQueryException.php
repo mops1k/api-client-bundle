@@ -5,11 +5,12 @@ namespace ApiClientBundle\Exceptions;
 use ApiClientBundle\Interfaces\ApiClientExceptionInterface;
 use ApiClientBundle\Interfaces\ClientConfigurationInterface;
 use ApiClientBundle\Interfaces\QueryInterface;
+use ApiClientBundle\Model\GenericErrorResponse;
 
 final class ClientNotSupportedByQueryException extends \Exception implements ApiClientExceptionInterface
 {
     /**
-     * @param QueryInterface<object> $query
+     * @param QueryInterface<object, GenericErrorResponse> $query
      */
     public function __construct(
         ClientConfigurationInterface $clientConfiguration,

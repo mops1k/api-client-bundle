@@ -8,12 +8,14 @@ use Symfony\Component\HttpFoundation\Response;
 
 abstract class AbstractResponse implements StatusCodeInterface, HeadersInterface
 {
+    // todo: та же проблема с <public
     /**
      * @var array<string, mixed>
      */
-    protected array $headers = [];
+    public array $headers = [];
 
-    protected int $statusCode = Response::HTTP_BAD_REQUEST;
+    // todo: та же проблема с <public
+    public int $statusCode = Response::HTTP_BAD_REQUEST;
 
     public function getHeaders(): array
     {
