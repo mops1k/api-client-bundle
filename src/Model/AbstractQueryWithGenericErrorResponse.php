@@ -10,7 +10,7 @@ namespace ApiClientBundle\Model;
  */
 abstract class AbstractQueryWithGenericErrorResponse extends AbstractQuery
 {
-    public function errorResponseClassName(): string
+    final public function errorResponseClassName(): string
     {
         return GenericErrorResponse::class;
     }
