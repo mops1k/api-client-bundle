@@ -26,4 +26,9 @@ class SerializedNameQuery extends AbstractQuery
     {
         return SerializedNameResponse::class;
     }
+
+    public function errorResponseClassName(): string
+    {
+        return TestErrorResponse::class;
+    }
 }

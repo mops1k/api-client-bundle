@@ -13,33 +13,27 @@ use ApiClientBundle\Tests\Fixtures\TestClient;
 use ApiClientBundle\Tests\Fixtures\TestErrorResponse;
 use ApiClientBundle\Tests\Fixtures\TestQuery;
 use ApiClientBundle\Tests\Fixtures\TestResponse;
-use PHPUnit\Framework\TestCase;
 use ProxyManager\Proxy\GhostObjectInterface;
+use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\HttpClient\MockHttpClient;
 use Symfony\Component\HttpClient\Response\MockResponse;
-use Symfony\Component\Serializer\Annotation\SerializedName;
-use Symfony\Component\Serializer\Encoder\JsonEncoder;
-use Symfony\Component\Serializer\Normalizer\DateTimeNormalizer;
-use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
-use Symfony\Component\Serializer\Normalizer\PropertyNormalizer;
-use Symfony\Component\Serializer\Serializer;
 
 /**
  * @phpstan-type TAssertCallable callable(array<mixed>,object):bool
  */
-class ApiClientTest extends TestCase
+class ApiClientTest extends KernelTestCase
 {
     /**
      * @dataProvider responseDataProvider
      *
      * @param class-string<AbstractQuery<object>> $queryClass
-     * @param array<mixed> $responseData
+     * @param array<mixed>|string $responseData
      * @param class-string<AbstractResponse> $expectedResponseInstance
      * @param TAssertCallable|null $responseAssertion
      */
     public function testSendSyncRequest(
         string $queryClass,
-        array $responseData,
+        array|string $responseData,
         int $statusCode,
         string $expectedResponseInstance,
         ?callable $responseAssertion = null,
@@ -61,13 +55,13 @@ class ApiClientTest extends TestCase
      * @dataProvider responseDataProvider
      *
      * @param class-string<AbstractQuery<object>> $queryClass
-     * @param array<mixed> $responseData
+     * @param array<mixed>|string $responseData
      * @param class-string<AbstractResponse> $expectedResponseInstance
      * @param TAssertCallable|null $responseAssertion
      */
     public function testSendAsyncRequest(
         string $queryClass,
-        array $responseData,
+        array|string $responseData,
         int $statusCode,
         string $expectedResponseInstance,
         ?callable $responseAssertion = null,
@@ -82,10 +76,11 @@ class ApiClientTest extends TestCase
         static::assertFalse($response->isProxyInitialized());
         static::assertInstanceOf(TestResponse::class, $response);
         static::assertEquals($statusCode, $response->getStatusCode());
-        if (null !== $responseAssertion) {
+        // if (null !== $responseAssertion) {
             // todo: ответы с ошибками заворачиваются в TestResponse всё равно, это неправильно
             // static::assertTrue($responseAssertion($responseData, $response));
-            // todo: удалить после исправления замечания выше
+        // }
+        if (isset($responseData['status'])) {
             static::assertEquals($responseData['status'], $response->getStatus());
         }
         static::assertTrue($response->isProxyInitialized());
@@ -104,12 +99,19 @@ class ApiClientTest extends TestCase
      */
     public function responseDataProvider(): iterable
     {
-        $assertion1 = static function (array $responseData, TestResponse $response): bool {
-            return $responseData['status'] === $response->getStatus();
-        };
-        $assertion2 = static function (array $responseData, TestErrorResponse $response): bool {
-            return $responseData['status'] === $response->getStatus();
-        };
+        $assertion1 = static fn (array $responseData, TestResponse $response): bool => $responseData['status'] === $response->getStatus();
+        $assertion2 = static fn (array $responseData, TestErrorResponse $response): bool => $responseData['status'] === $response->getStatus();
+
+        yield [
+            'query' => TestQuery::class,
+            'responseData' => ['status' => false],
+            'statusCode' => 500,
+            'expectedResponseInstance' => TestErrorResponse::class,
+            'assert' => static fn (array $responseData, TestErrorResponse $response): bool => $response->getRawContent() === \json_encode(
+                $responseData,
+                JSON_THROW_ON_ERROR
+            ),
+        ];
 
         yield [
             'query' => TestQuery::class,
@@ -142,30 +144,17 @@ class ApiClientTest extends TestCase
 
         yield [
             'query' => SerializedNameQuery::class,
-            'responseData' => ['foo_bar' => 'test'],
+            'responseData' => ['status' => true, 'foo_bar' => 'test'],
             'statusCode' => 200,
             'expectedResponseInstance' => SerializedNameResponse::class,
-            // todo: без ObjectNormalizer атрибут SerializedName не работает
-            // 'assert' => static function (array $responseData, SerializedNameResponse $response): bool {
-            //     return $responseData['foo_bar'] === $response->renamed;
-            // }
+             'assert' => static fn (array $responseData, SerializedNameResponse $response): bool => $responseData['foo_bar'] === $response->renamed,
         ];
     }
 
     private function createMockedApiClient(MockResponse $mockResponse, bool $isAsync): ApiClientFactory
     {
         $mockHttpClient = new MockHttpClient($mockResponse);
-        // todo: доставать @serializer из контейнера
-        $serializer = new Serializer(
-            [
-                new PropertyNormalizer(),
-                new DateTimeNormalizer(),
-            ],
-            [
-                new JsonEncoder(),
-            ]
-        );
-        $responseFactory = new ResponseFactory($mockHttpClient, $serializer);
+        $responseFactory = new ResponseFactory($mockHttpClient);
 
         return new ApiClientFactory([new TestClient($isAsync)], new Client($responseFactory));
     }
