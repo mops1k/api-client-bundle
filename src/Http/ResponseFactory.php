@@ -10,9 +10,7 @@ use ApiClientBundle\Interfaces\ClientInterface;
 use ApiClientBundle\Interfaces\GenericErrorResponseInterface;
 use ApiClientBundle\Interfaces\HeadersInterface;
 use ApiClientBundle\Interfaces\QueryInterface;
-use ApiClientBundle\Interfaces\SerializerFormatInterface;
 use ApiClientBundle\Interfaces\StatusCodeInterface;
-use ApiClientBundle\Model\GenericErrorResponse;
 use Doctrine\Common\Annotations\AnnotationReader;
 use ProxyManager\Factory\LazyLoadingGhostFactory;
 use ProxyManager\Proxy\GhostObjectInterface;
@@ -48,7 +46,7 @@ final class ResponseFactory
     public function __construct(private HttpClientInterface $httpClient)
     {
         // Чтобы быть уверенными в том, что у нас сериализатор будет запускать в правильном порядке нормализаторы,
-        // а также иметь уверенность что все поддерживаемые форматы сериализатора включены и аттрибуты с аннотациями
+        // а также иметь уверенность, что все поддерживаемые форматы сериализатора включены и аттрибуты с аннотациями
         // читаются, независимо от конфигурации сериализатора в проекте
         $classMetadataFactory = new ClassMetadataFactory(new AnnotationLoader(new AnnotationReader()));
         $metadataAwareNameConverter = new MetadataAwareNameConverter($classMetadataFactory);
