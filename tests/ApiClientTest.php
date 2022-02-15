@@ -77,8 +77,8 @@ class ApiClientTest extends KernelTestCase
         static::assertInstanceOf(TestResponse::class, $response);
         static::assertEquals($statusCode, $response->getStatusCode());
         // if (null !== $responseAssertion) {
-            // todo: ответы с ошибками заворачиваются в TestResponse всё равно, это неправильно
-            // static::assertTrue($responseAssertion($responseData, $response));
+        // todo: ответы с ошибками заворачиваются в TestResponse всё равно, это неправильно
+        // static::assertTrue($responseAssertion($responseData, $response));
         // }
         if (isset($responseData['status'])) {
             static::assertEquals($responseData['status'], $response->getStatus());
