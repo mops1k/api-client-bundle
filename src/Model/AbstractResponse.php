@@ -12,10 +12,10 @@ abstract class AbstractResponse implements StatusCodeInterface, HeadersInterface
     /**
      * @var array<string, mixed>
      */
-    protected array $headers = [];
+    public array $headers = [];
 
     // todo: та же проблема с <public
-    protected int $statusCode = Response::HTTP_BAD_REQUEST;
+    public int $statusCode = Response::HTTP_BAD_REQUEST;
 
     public function getHeaders(): array
     {
