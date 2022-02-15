@@ -10,9 +10,9 @@ use ApiClientBundle\Interfaces\ClientInterface;
 use ApiClientBundle\Interfaces\GenericErrorResponseInterface;
 use ApiClientBundle\Interfaces\HeadersInterface;
 use ApiClientBundle\Interfaces\QueryInterface;
-use ApiClientBundle\Interfaces\SerializerFormatInterface;
 use ApiClientBundle\Interfaces\StatusCodeInterface;
 use ApiClientBundle\Model\GenericErrorResponse;
+use Doctrine\Common\Annotations\AnnotationReader;
 use ProxyManager\Factory\LazyLoadingGhostFactory;
 use ProxyManager\Proxy\GhostObjectInterface;
 use Symfony\Component\HttpClient\Exception\TransportException;
@@ -22,11 +22,13 @@ use Symfony\Component\Serializer\Encoder\JsonEncoder;
 use Symfony\Component\Serializer\Encoder\XmlEncoder;
 use Symfony\Component\Serializer\Encoder\YamlEncoder;
 use Symfony\Component\Serializer\Exception\ExceptionInterface as SerializerExceptionInterfaceAlias;
+use Symfony\Component\Serializer\Mapping\Factory\ClassMetadataFactory;
+use Symfony\Component\Serializer\Mapping\Loader\AnnotationLoader;
+use Symfony\Component\Serializer\NameConverter\MetadataAwareNameConverter;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
-use Symfony\Component\Serializer\Normalizer\DateTimeNormalizer;
+use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
 use Symfony\Component\Serializer\Normalizer\PropertyNormalizer;
 use Symfony\Component\Serializer\Serializer;
-use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Contracts\HttpClient\Exception\DecodingExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\ExceptionInterface as HttpClientExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
@@ -40,23 +42,28 @@ final class ResponseFactory
      */
     private array $initializedClients = [];
 
-    public function __construct(private HttpClientInterface $httpClient, private ?SerializerInterface $serializer = null)
+    private Serializer $serializer;
+
+    public function __construct(private HttpClientInterface $httpClient)
     {
-        if (!$serializer) {
-            $this->serializer = new Serializer(
-                [
-                    new PropertyNormalizer(),
-                    new DateTimeNormalizer(),
-                ],
-                [
-                    new XmlEncoder(),
-                    new JsonEncoder(),
-                    new CsvEncoder(),
-                    new YamlEncoder(),
-                    new ChainEncoder(),
-                ]
-            );
-        }
+        // Чтобы быть уверенными в том, что у нас сериализатор будет запускать в правильном порядке нормализаторы,
+        // а также иметь уверенность, что все поддерживаемые форматы сериализатора включены и аттрибуты с аннотациями
+        // читаются, независимо от конфигурации сериализатора в проекте
+        $classMetadataFactory = new ClassMetadataFactory(new AnnotationLoader(new AnnotationReader()));
+        $metadataAwareNameConverter = new MetadataAwareNameConverter($classMetadataFactory);
+        $this->serializer = new Serializer(
+            [
+                new PropertyNormalizer($classMetadataFactory, $metadataAwareNameConverter),
+                new ObjectNormalizer($classMetadataFactory, $metadataAwareNameConverter),
+            ],
+            [
+                new JsonEncoder(),
+                new XmlEncoder(),
+                new YamlEncoder(),
+                new CsvEncoder(),
+                new ChainEncoder(),
+            ]
+        );
     }
 
     /**
@@ -108,9 +115,6 @@ final class ResponseFactory
 
             $content = $response->getContent(false);
 
-            // todo: избавиться от json_encode и deserialize(): можно использовать denormalize() без конвертации в json
-            // todo: тут особенно актуально, т.к. делается много раз
-
             if ($response->getStatusCode() >= 400) {
                 if (!is_a($query->errorResponseClassName(), GenericErrorResponseInterface::class, true)) {
                     throw new ErrorResponseException($query);
@@ -127,10 +131,10 @@ final class ResponseFactory
                     $query->serializerResponseFormat()
                 );
 
-                $this->serializer->deserialize(
-                    \json_encode($data, JSON_THROW_ON_ERROR),
+                $this->serializer->denormalize(
+                    $data,
                     $object::class,
-                    $query->serializerResponseFormat(),
+                    null,
                     [AbstractNormalizer::OBJECT_TO_POPULATE => $object]
                 );
 
@@ -197,6 +201,7 @@ final class ResponseFactory
                 );
 
                 $this->addAdditionalData($response, $query, $ghostObject);
+                // @todo: заворачивать ответы с кодом <=400 в своё исключение (чтобы можно было получить тело ответа из него)
             } catch (TransportException|DecodingExceptionInterface $exception) {
                 throw new QueryException($query, $exception->getCode(), $exception);
             } catch (SerializerExceptionInterfaceAlias $exception) {
@@ -267,11 +272,10 @@ final class ResponseFactory
             return;
         }
 
-        // todo: избавиться от json_encode и deserialize(): можно использовать denormalize() без конвертации в json
-        $this->serializer->deserialize(
-            \json_encode($additionalData, JSON_THROW_ON_ERROR),
+        $this->serializer->denormalize(
+            $additionalData,
             $query->responseClassName(),
-            SerializerFormatInterface::FORMAT_JSON,
+            null,
             [AbstractNormalizer::OBJECT_TO_POPULATE => $object]
         );
     }
