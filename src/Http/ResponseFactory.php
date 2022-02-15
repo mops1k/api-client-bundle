@@ -273,11 +273,10 @@ final class ResponseFactory
             return;
         }
 
-        // todo: избавиться от json_encode и deserialize(): можно использовать denormalize() без конвертации в json
-        $this->serializer->deserialize(
-            \json_encode($additionalData, JSON_THROW_ON_ERROR),
+        $this->serializer->denormalize(
+            $additionalData,
             $query->responseClassName(),
-            SerializerFormatInterface::FORMAT_JSON,
+            null,
             [AbstractNormalizer::OBJECT_TO_POPULATE => $object]
         );
     }
