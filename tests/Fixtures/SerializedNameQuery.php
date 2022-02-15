@@ -1,18 +1,20 @@
 <?php
 
-namespace ApiClientBundle\Tests\Configuration;
+declare(strict_types=1);
+
+namespace ApiClientBundle\Tests\Fixtures;
 
 use ApiClientBundle\Interfaces\ClientConfigurationInterface;
 use ApiClientBundle\Model\AbstractQuery;
 
 /**
- * @extends AbstractQuery<TestResponse, TestErrorResponse>
+ * @extends AbstractQuery<SerializedNameResponse, TestErrorResponse>
  */
-class TestQuery extends AbstractQuery
+class SerializedNameQuery extends AbstractQuery
 {
     public function path(): string
     {
-        return '/api';
+        return '/foo';
     }
 
     public function support(ClientConfigurationInterface $clientConfiguration): bool
@@ -22,7 +24,7 @@ class TestQuery extends AbstractQuery
 
     public function responseClassName(): string
     {
-        return TestResponse::class;
+        return SerializedNameResponse::class;
     }
 
     public function errorResponseClassName(): string
