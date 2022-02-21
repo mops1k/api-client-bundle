@@ -20,6 +20,7 @@
       <file>src/ApiClientBundle.php</file>
       <directory>src/DependencyInjection/</directory>
       <directory>src/Resources/skeleton/</directory>
+      <directory>src/Maker/</directory>
     </exclude>
   </coverage>
   <testsuites>
