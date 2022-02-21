@@ -76,6 +76,10 @@ return static function (ContainerConfigurator $containerConfigurator): void {
         __DIR__ . '/ecs.php',
     ]);
 
+    $parameters->set(Option::SKIP, [
+        __DIR__ . '/src/Resources/skeleton',
+    ]);
+
     $containerConfigurator->import(SetList::PSR_12);
     $containerConfigurator->import(SetList::DOCTRINE_ANNOTATIONS);
 
