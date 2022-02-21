@@ -57,7 +57,7 @@ class QueryMaker extends AbstractMaker
     {
     }
 
-    public function generate(InputInterface $input, ConsoleStyle $io, Generator $generator): void
+    public function generate(InputInterface $input, ConsoleStyle $io, Generator $generator): int
     {
         $queryName = trim($input->getArgument('name'));
         $endpoint = trim($input->getArgument('endpoint'));
@@ -139,5 +139,7 @@ class QueryMaker extends AbstractMaker
         $io->text([
             'Next: open your new query classes and customize it!',
         ]);
+
+        return Command::SUCCESS;
     }
 }

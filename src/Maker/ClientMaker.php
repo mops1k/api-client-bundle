@@ -39,7 +39,7 @@ class ClientMaker extends AbstractMaker
     {
     }
 
-    public function generate(InputInterface $input, ConsoleStyle $io, Generator $generator): void
+    public function generate(InputInterface $input, ConsoleStyle $io, Generator $generator): int
     {
         $clientName = trim($input->getArgument('name'));
         $domain = $input->getArgument('domain');
@@ -77,5 +77,7 @@ class ClientMaker extends AbstractMaker
             'Next: open your new client class and customize it!',
             'Next: create query for client with command "make:api:query"!',
         ]);
+
+        return Command::SUCCESS;
     }
 }
