@@ -3,7 +3,6 @@
 namespace ApiClientBundle\Maker;
 
 use ApiClientBundle\Interfaces\ClientConfigurationInterface;
-use Doctrine\Inflector\Inflector;
 use Doctrine\Inflector\InflectorFactory;
 use Symfony\Bundle\MakerBundle\ConsoleStyle;
 use Symfony\Bundle\MakerBundle\DependencyBuilder;
@@ -87,15 +86,15 @@ class QueryMaker extends AbstractMaker
         $question = new ConfirmationQuestion('Use default error response?', true);
         $isDefaultErrorResponse = $io->askQuestion($question);
 
+
+        $inflector = InflectorFactory::create()->build();
         $refl = new \ReflectionClass($client);
         $namespacePart = \str_replace('Configuration', '', $refl->getShortName());
         $queryClassDetails = $generator->createClassNameDetails(
-            $queryName,
+            $inflector->camelize($method).$queryName,
             'External\\' . $namespacePart . '\\Query',
             'Query'
         );
-
-        $inflector = InflectorFactory::create()->build();
         $responseClassDetails = $generator->createClassNameDetails(
             $queryName,
             'External\\' . $namespacePart . '\\Response',
