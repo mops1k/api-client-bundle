@@ -3,6 +3,8 @@
 namespace ApiClientBundle\Maker;
 
 use ApiClientBundle\Interfaces\ClientConfigurationInterface;
+use Doctrine\Inflector\Inflector;
+use Doctrine\Inflector\InflectorFactory;
 use Symfony\Bundle\MakerBundle\ConsoleStyle;
 use Symfony\Bundle\MakerBundle\DependencyBuilder;
 use Symfony\Bundle\MakerBundle\Generator;
@@ -93,10 +95,11 @@ class QueryMaker extends AbstractMaker
             'Query'
         );
 
+        $inflector = InflectorFactory::create()->build();
         $responseClassDetails = $generator->createClassNameDetails(
             $queryName,
             'External\\' . $namespacePart . '\\Response',
-            'Response'
+            $inflector->camelize($method).'Response'
         );
 
         $errorResponseClassDetails = null;
@@ -104,7 +107,7 @@ class QueryMaker extends AbstractMaker
             $errorResponseClassDetails = $generator->createClassNameDetails(
                 $queryName,
                 'External\\' . $namespacePart . '\\Response',
-                'ErrorResponse'
+                $inflector->camelize($method).'ErrorResponse'
             );
 
             $generator->generateClass(
