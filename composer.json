@@ -17,6 +17,7 @@
     "phpstan/phpstan-strict-rules": "^1.1",
     "phpunit/phpunit": "^9.5",
     "roave/security-advisories": "dev-latest",
+    "symfony/maker-bundle": "^1.37",
     "symfony/property-access": "^5.4|^6.0",
     "symplify/easy-coding-standard": "^10.0"
   },

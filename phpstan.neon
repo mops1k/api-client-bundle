@@ -37,6 +37,7 @@ parameters:
         analyseAndScan:
             - vendor/
             - var/
+            - src/Resources/skeleton
     reportUnmatchedIgnoredErrors: false
     polluteScopeWithLoopInitialAssignments: false
     polluteScopeWithAlwaysIterableForeach: false
