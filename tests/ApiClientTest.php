@@ -2,8 +2,11 @@
 
 namespace ApiClientBundle\Tests;
 
+use ApiClientBundle\Exceptions\ErrorResponseException;
+use ApiClientBundle\Exceptions\QueryException;
 use ApiClientBundle\Http\Client;
 use ApiClientBundle\Http\ResponseFactory;
+use ApiClientBundle\Interfaces\GenericErrorResponseInterface;
 use ApiClientBundle\Interfaces\QueryInterface;
 use ApiClientBundle\Model\AbstractResponse;
 use ApiClientBundle\Model\GenericErrorResponse;
@@ -18,6 +21,7 @@ use ProxyManager\Proxy\GhostObjectInterface;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\HttpClient\MockHttpClient;
 use Symfony\Component\HttpClient\Response\MockResponse;
+use Symfony\Component\HttpFoundation\Response;
 
 /**
  * @phpstan-type TAssertCallable callable(array<mixed>,object):bool
@@ -75,25 +79,44 @@ class ApiClientTest extends KernelTestCase
         $mockResponse = new MockResponse(json_encode($responseData, JSON_THROW_ON_ERROR), ['http_code' => $statusCode]);
 
         $client = $this->createMockedApiClient($mockResponse, true)->use(TestClient::class);
-        // todo: тут у нас всегда TestQuery, а должен быть из провайдера
+        $query = new TestQuery();
+        $response = $client->request($query);
+        static::assertInstanceOf(GhostObjectInterface::class, $response);
+        static::assertFalse($response->isProxyInitialized());
+
+        try {
+            static::assertInstanceOf(TestResponse::class, $response);
+            static::assertEquals($statusCode, $response->getStatusCode());
+
+            if (isset($responseData['status'])) {
+                static::assertEquals($responseData['status'], $response->getStatus());
+            }
+            static::assertTrue($response->isProxyInitialized());
+        } catch (GenericErrorResponseInterface $exception) {
+            self::assertInstanceOf(ErrorResponseException::class, $exception);
+            static::assertEquals($statusCode, $exception->getStatusCode());
+            static::assertEquals(json_encode($responseData, JSON_THROW_ON_ERROR), $exception->getRawContent());
+            static::assertEquals(Response::$statusTexts[$statusCode], $exception->getMessage());
+            static::assertInstanceOf(GhostObjectInterface::class, $response);
+            static::assertFalse($response->isProxyInitialized());
+        }
+    }
+
+    public function testSimulateTransportException(): void
+    {
+        $mockResponse = new MockResponse('', ['http_code' => 500]);
+        $mockResponse->cancel();
+
+        $client = $this->createMockedApiClient($mockResponse, true)->use(TestClient::class);
         $query = new TestQuery();
         $response = $client->request($query);
 
         static::assertInstanceOf(GhostObjectInterface::class, $response);
         static::assertFalse($response->isProxyInitialized());
-        // todo: $expectedResponseInstance
+
+        $this->expectException(QueryException::class);
         static::assertInstanceOf(TestResponse::class, $response);
-        static::assertEquals($statusCode, $response->getStatusCode());
-        // if (null !== $responseAssertion) {
-        // todo: ответы с ошибками заворачиваются в TestResponse всё равно, это неправильно
-        // static::assertTrue($responseAssertion($responseData, $response));
-        // }
-        if (isset($responseData['status'])) {
-            static::assertEquals($responseData['status'], $response->getStatus());
-        }
-        static::assertTrue($response->isProxyInitialized());
-        // todo: проверить что в $response нужный класс ответа
-        // static::assertInstanceOf($expectedResponseInstance, $response);
+        static::assertEquals(500, $response->getStatusCode());
     }
 
     /**
@@ -120,7 +143,6 @@ class ApiClientTest extends KernelTestCase
                 JSON_THROW_ON_ERROR
             ),
         ];
-
         yield [
             'query' => new TestQuery(),
             'responseData' => ['status' => true],
