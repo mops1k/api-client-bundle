@@ -18,6 +18,7 @@
     </include>
     <exclude>
       <file>src/ApiClientBundle.php</file>
+      <file>src/Model/AbstractQueryWithGenericErrorResponse.php</file>
       <directory>src/DependencyInjection/</directory>
       <directory>src/Resources/skeleton/</directory>
       <directory>src/Maker/</directory>

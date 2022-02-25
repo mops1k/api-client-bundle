@@ -2,6 +2,7 @@
 
 namespace ApiClientBundle\Http;
 
+use ApiClientBundle\Exceptions\BadErrorResponseException;
 use ApiClientBundle\Exceptions\ErrorResponseException;
 use ApiClientBundle\Exceptions\QueryException;
 use ApiClientBundle\Exceptions\QuerySerializationException;
@@ -15,7 +16,6 @@ use ApiClientBundle\Model\GenericErrorResponse;
 use Doctrine\Common\Annotations\AnnotationReader;
 use ProxyManager\Factory\LazyLoadingGhostFactory;
 use ProxyManager\Proxy\GhostObjectInterface;
-use Symfony\Component\HttpClient\Exception\TransportException;
 use Symfony\Component\Serializer\Encoder\ChainEncoder;
 use Symfony\Component\Serializer\Encoder\CsvEncoder;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
@@ -31,6 +31,7 @@ use Symfony\Component\Serializer\Normalizer\PropertyNormalizer;
 use Symfony\Component\Serializer\Serializer;
 use Symfony\Contracts\HttpClient\Exception\DecodingExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\ExceptionInterface as HttpClientExceptionInterface;
+use Symfony\Contracts\HttpClient\Exception\HttpExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Symfony\Contracts\HttpClient\ResponseInterface;
@@ -117,7 +118,7 @@ final class ResponseFactory
 
             if ($response->getStatusCode() >= 400) {
                 if (!is_a($query->errorResponseClassName(), GenericErrorResponseInterface::class, true)) {
-                    throw new ErrorResponseException($query);
+                    throw new BadErrorResponseException($query);
                 }
                 $data = [
                     'rawContent' => $content,
@@ -194,15 +195,16 @@ final class ResponseFactory
                 );
 
                 $this->serializer->deserialize(
-                    $response->getContent(false),
+                    $response->getContent(),
                     $ghostObject::class,
                     $query->serializerResponseFormat(),
                     [AbstractNormalizer::OBJECT_TO_POPULATE => $ghostObject]
                 );
 
                 $this->addAdditionalData($response, $query, $ghostObject);
-                // @todo: заворачивать ответы с кодом <=400 в своё исключение (чтобы можно было получить тело ответа из него)
-            } catch (TransportException|DecodingExceptionInterface $exception) {
+            } catch (HttpExceptionInterface $exception) {
+                throw new ErrorResponseException($exception->getResponse(), $ghostObject, $exception);
+            } catch (TransportExceptionInterface|DecodingExceptionInterface $exception) {
                 throw new QueryException($query, $exception->getCode(), $exception);
             } catch (SerializerExceptionInterfaceAlias $exception) {
                 throw new QuerySerializationException($query, $exception->getCode(), $exception);
