@@ -2,23 +2,44 @@
 
 namespace ApiClientBundle\Exceptions;
 
-use ApiClientBundle\Interfaces\ApiClientExceptionInterface;
 use ApiClientBundle\Interfaces\GenericErrorResponseInterface;
-use ApiClientBundle\Interfaces\QueryInterface;
-use ApiClientBundle\Model\GenericErrorResponse;
+use ProxyManager\Proxy\GhostObjectInterface;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Contracts\HttpClient\ResponseInterface;
 
-class ErrorResponseException extends \Exception implements ApiClientExceptionInterface
+class ErrorResponseException extends \RuntimeException implements GenericErrorResponseInterface
 {
     /**
-     * @param QueryInterface<object, GenericErrorResponse> $query
+     * @param GhostObjectInterface<object> $responseObject
      */
-    public function __construct(QueryInterface $query, int $code = 0, ?\Throwable $previous = null)
+    public function __construct(
+        private ResponseInterface $response,
+        GhostObjectInterface $responseObject,
+        \Throwable $previous = null,
+    ) {
+        $responseObject->setProxyInitializer(fn (
+            GhostObjectInterface $ghostObject,
+            string $method,
+            array $parameters,
+            &$initializer,
+            array $properties,
+        ) => $initializer = null);
+
+        parent::__construct(Response::$statusTexts[$this->response->getStatusCode()], $this->response->getStatusCode(), $previous);
+    }
+
+    public function getRawContent(): string
     {
-        $message = \sprintf(
-            'Error response in query %s must implement %s',
-            $query::class,
-            GenericErrorResponseInterface::class
-        );
-        parent::__construct($message, $code, $previous);
+        return $this->response->getContent(false);
+    }
+
+    public function getHeaders(): array
+    {
+        return $this->response->getHeaders(false);
+    }
+
+    public function getStatusCode(): int
+    {
+        return $this->response->getStatusCode();
     }
 }
