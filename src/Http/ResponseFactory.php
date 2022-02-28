@@ -234,7 +234,15 @@ final class ResponseFactory
         if ($query->files()->count() > 0) {
             $query->headers()->set('Content-Type', 'multipart/form-data');
             foreach ($query->files()->all() as $key => $value) {
-                $formFields[$key] = DataPart::fromPath($value);
+                if (!is_iterable($value)) {
+                    $formFields[$key] = DataPart::fromPath($value);
+
+                    continue;
+                }
+
+                foreach ($value as $item) {
+                    $formFields[$key][] = $item;
+                }
             }
         }
 
