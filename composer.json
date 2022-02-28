@@ -4,9 +4,10 @@
   "type": "symfony-bundle",
   "require": {
     "php": ">=8.0",
+    "ocramius/proxy-manager": "^2.13",
     "symfony/framework-bundle": "^5.4|^6.0",
     "symfony/http-client": "^5.4|^6.0",
-    "ocramius/proxy-manager": "^2.13",
+    "symfony/mime": "^6.0",
     "symfony/serializer": "^5.4|^6.0",
     "symfony/yaml": "^5.4|^6.0"
   },

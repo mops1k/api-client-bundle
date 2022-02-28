@@ -3,6 +3,7 @@
 namespace ApiClientBundle\Http;
 
 use ApiClientBundle\Exceptions\BadErrorResponseException;
+use ApiClientBundle\Exceptions\BadMethodException;
 use ApiClientBundle\Exceptions\ErrorResponseException;
 use ApiClientBundle\Exceptions\QueryException;
 use ApiClientBundle\Exceptions\QuerySerializationException;
@@ -16,6 +17,9 @@ use ApiClientBundle\Model\GenericErrorResponse;
 use Doctrine\Common\Annotations\AnnotationReader;
 use ProxyManager\Factory\LazyLoadingGhostFactory;
 use ProxyManager\Proxy\GhostObjectInterface;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Mime\Part\DataPart;
+use Symfony\Component\Mime\Part\Multipart\FormDataPart;
 use Symfony\Component\Serializer\Encoder\ChainEncoder;
 use Symfony\Component\Serializer\Encoder\CsvEncoder;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
@@ -226,19 +230,38 @@ final class ResponseFactory
      */
     private function normalizeOptions(QueryInterface $query): array
     {
+        $formFields = $query->formData()->all();
+        if ($query->files()->count() > 0) {
+            $query->headers()->set('Content-Type', 'multipart/form-data');
+            foreach ($query->files()->all() as $key => $value) {
+                $formFields[$key] = DataPart::fromPath($value);
+            }
+        }
+
+        $formData = null;
+        if ($formFields) {
+            if ($query->method() === Request::METHOD_GET) {
+                throw new BadMethodException($query);
+            }
+            $formData = new FormDataPart($formFields);
+            $query->headers()->add($formData->getPreparedHeaders()->toArray());
+        }
+
         $options = \array_merge_recursive(
             $query->options()->all(),
             ['query' => $query->queryData()->all()],
             ['headers' => $query->headers()->all()],
             ['json' => $query->jsonData()->all()],
-            ['body' => $query->formData()->all()],
+            ['body' => $formData ? $formData->bodyToIterable() : []],
         );
         switch (true) {
-            case $options['json'] === []:
+            // Заполнение из body приоритетнее
+            case $options['json'] !== [] && $options['body']:
+            case !$options['json']:
                 unset($options['json']);
 
                 break;
-            case $options['body'] === []:
+            case !$options['body']:
                 unset($options['body']);
 
                 break;
