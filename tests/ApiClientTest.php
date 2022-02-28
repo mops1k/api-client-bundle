@@ -120,20 +120,29 @@ class ApiClientTest extends KernelTestCase
         static::assertEquals(500, $response->getStatusCode());
     }
 
-    public function testFilesUploading(): void
+    /**
+     * @dataProvider fileUploadingProvider
+     */
+    public function testFilesUploadingAsync(bool $isAsync): void
     {
-        $mockResponse = new MockResponse(\json_encode(['status' => false]), ['http_code' => 200]);
+        $mockResponse = new MockResponse(\json_encode(['status' => true]), ['http_code' => 200]);
 
-        $client = $this->createMockedApiClient($mockResponse, true)->use(TestClient::class);
+        $client = $this->createMockedApiClient($mockResponse, $isAsync)->use(TestClient::class);
         $query = new TestQuery(Request::METHOD_POST);
         $query->files()->set('test_file', __DIR__ . '/Fixtures/stub.txt');
         $response = $client->request($query);
 
-        static::assertInstanceOf(GhostObjectInterface::class, $response);
-        static::assertFalse($response->isProxyInitialized());
+        if ($isAsync) {
+            static::assertInstanceOf(GhostObjectInterface::class, $response);
+            static::assertFalse($response->isProxyInitialized());
+        }
 
         static::assertInstanceOf(TestResponse::class, $response);
         static::assertEquals(200, $response->getStatusCode());
+        if ($isAsync) {
+            /** @phpstan-ignore-next-line */
+            static::assertTrue($response->isProxyInitialized());
+        }
     }
 
     /**
@@ -196,6 +205,15 @@ class ApiClientTest extends KernelTestCase
             'expectedResponseInstance' => SerializedNameResponse::class,
             'assert' => static fn (array $responseData, SerializedNameResponse $response): bool => $responseData['foo_bar'] === $response->renamed,
         ];
+    }
+
+    /**
+     * @return iterable<mixed>
+     */
+    public function fileUploadingProvider(): iterable
+    {
+        yield 'sync' => ['isAsync' => false];
+        yield 'async' => ['isAsync' => true];
     }
 
     private function createMockedApiClient(MockResponse $mockResponse, bool $isAsync): ApiClientFactory
