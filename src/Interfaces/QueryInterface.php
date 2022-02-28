@@ -23,6 +23,8 @@ interface QueryInterface
 
     public function formData(): ParameterBag;
 
+    public function files(): ParameterBag;
+
     public function headers(): ParameterBag;
 
     public function support(ClientConfigurationInterface $clientConfiguration): bool;
