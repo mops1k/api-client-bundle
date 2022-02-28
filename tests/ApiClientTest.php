@@ -21,6 +21,7 @@ use ProxyManager\Proxy\GhostObjectInterface;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\HttpClient\MockHttpClient;
 use Symfony\Component\HttpClient\Response\MockResponse;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
@@ -120,6 +121,31 @@ class ApiClientTest extends KernelTestCase
     }
 
     /**
+     * @dataProvider fileUploadingProvider
+     */
+    public function testFilesUploadingAsync(bool $isAsync): void
+    {
+        $mockResponse = new MockResponse(\json_encode(['status' => true]), ['http_code' => 200]);
+
+        $client = $this->createMockedApiClient($mockResponse, $isAsync)->use(TestClient::class);
+        $query = new TestQuery(Request::METHOD_POST);
+        $query->files()->set('test_file', __DIR__ . '/Fixtures/stub.txt');
+        $response = $client->request($query);
+
+        if ($isAsync) {
+            static::assertInstanceOf(GhostObjectInterface::class, $response);
+            static::assertFalse($response->isProxyInitialized());
+        }
+
+        static::assertInstanceOf(TestResponse::class, $response);
+        static::assertEquals(200, $response->getStatusCode());
+        if ($isAsync) {
+            /** @phpstan-ignore-next-line */
+            static::assertTrue($response->isProxyInitialized());
+        }
+    }
+
+    /**
      * @return iterable<array{
      *     query: QueryInterface,
      *     responseData: array<mixed>,
@@ -177,8 +203,17 @@ class ApiClientTest extends KernelTestCase
             'responseData' => ['status' => true, 'foo_bar' => 'test'],
             'statusCode' => 200,
             'expectedResponseInstance' => SerializedNameResponse::class,
-             'assert' => static fn (array $responseData, SerializedNameResponse $response): bool => $responseData['foo_bar'] === $response->renamed,
+            'assert' => static fn (array $responseData, SerializedNameResponse $response): bool => $responseData['foo_bar'] === $response->renamed,
         ];
+    }
+
+    /**
+     * @return iterable<mixed>
+     */
+    public function fileUploadingProvider(): iterable
+    {
+        yield 'sync' => ['isAsync' => false];
+        yield 'async' => ['isAsync' => true];
     }
 
     private function createMockedApiClient(MockResponse $mockResponse, bool $isAsync): ApiClientFactory

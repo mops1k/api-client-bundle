@@ -2,12 +2,13 @@
 
 namespace ApiClientBundle\Exceptions;
 
+use ApiClientBundle\Interfaces\ApiClientExceptionInterface;
 use ApiClientBundle\Interfaces\GenericErrorResponseInterface;
 use ProxyManager\Proxy\GhostObjectInterface;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Contracts\HttpClient\ResponseInterface;
 
-class ErrorResponseException extends \RuntimeException implements GenericErrorResponseInterface
+class ErrorResponseException extends \RuntimeException implements GenericErrorResponseInterface, ApiClientExceptionInterface
 {
     /**
      * @param GhostObjectInterface<object> $responseObject

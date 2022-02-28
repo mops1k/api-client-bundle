@@ -18,6 +18,7 @@ abstract class AbstractQuery implements QueryInterface
     private ParameterBag $jsonData;
     private ParameterBag $queryData;
     private ParameterBag $formData;
+    private ParameterBag $files;
     private ParameterBag $headers;
 
     public function __construct()
@@ -26,6 +27,7 @@ abstract class AbstractQuery implements QueryInterface
         $this->jsonData = new ParameterBag();
         $this->queryData = new ParameterBag();
         $this->formData = new ParameterBag();
+        $this->files = new ParameterBag();
         $this->headers = new ParameterBag();
     }
 
@@ -52,6 +54,11 @@ abstract class AbstractQuery implements QueryInterface
     public function formData(): ParameterBag
     {
         return $this->formData;
+    }
+
+    public function files(): ParameterBag
+    {
+        return $this->files;
     }
 
     public function headers(): ParameterBag
