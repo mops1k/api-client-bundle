@@ -20,6 +20,7 @@ use ProxyManager\Proxy\GhostObjectInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Mime\Part\DataPart;
 use Symfony\Component\Mime\Part\Multipart\FormDataPart;
+use Symfony\Component\PropertyInfo\Extractor\PhpDocExtractor;
 use Symfony\Component\PropertyInfo\Extractor\ReflectionExtractor;
 use Symfony\Component\Serializer\Encoder\ChainEncoder;
 use Symfony\Component\Serializer\Encoder\CsvEncoder;
@@ -62,7 +63,7 @@ final class ResponseFactory
         $this->serializer = new Serializer(
             [
                 new ArrayDenormalizer(),
-                new PropertyNormalizer($classMetadataFactory, $metadataAwareNameConverter),
+                new PropertyNormalizer($classMetadataFactory, $metadataAwareNameConverter, new PhpDocExtractor()),
                 new ObjectNormalizer($classMetadataFactory, $metadataAwareNameConverter, null, new ReflectionExtractor()),
             ],
             [
