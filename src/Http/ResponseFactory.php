@@ -20,6 +20,7 @@ use ProxyManager\Proxy\GhostObjectInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Mime\Part\DataPart;
 use Symfony\Component\Mime\Part\Multipart\FormDataPart;
+use Symfony\Component\PropertyInfo\Extractor\ReflectionExtractor;
 use Symfony\Component\Serializer\Encoder\ChainEncoder;
 use Symfony\Component\Serializer\Encoder\CsvEncoder;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
@@ -30,6 +31,7 @@ use Symfony\Component\Serializer\Mapping\Factory\ClassMetadataFactory;
 use Symfony\Component\Serializer\Mapping\Loader\AnnotationLoader;
 use Symfony\Component\Serializer\NameConverter\MetadataAwareNameConverter;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
+use Symfony\Component\Serializer\Normalizer\ArrayDenormalizer;
 use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
 use Symfony\Component\Serializer\Normalizer\PropertyNormalizer;
 use Symfony\Component\Serializer\Serializer;
@@ -58,8 +60,9 @@ final class ResponseFactory
         $metadataAwareNameConverter = new MetadataAwareNameConverter($classMetadataFactory);
         $this->serializer = new Serializer(
             [
+                new ArrayDenormalizer(),
                 new PropertyNormalizer($classMetadataFactory, $metadataAwareNameConverter),
-                new ObjectNormalizer($classMetadataFactory, $metadataAwareNameConverter),
+                new ObjectNormalizer($classMetadataFactory, $metadataAwareNameConverter, null, new ReflectionExtractor()),
             ],
             [
                 new JsonEncoder(),
