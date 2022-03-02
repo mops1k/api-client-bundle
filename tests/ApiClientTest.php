@@ -11,10 +11,15 @@ use ApiClientBundle\Interfaces\QueryInterface;
 use ApiClientBundle\Model\AbstractResponse;
 use ApiClientBundle\Model\GenericErrorResponse;
 use ApiClientBundle\Service\ApiClientFactory;
+use ApiClientBundle\Tests\Fixtures\ArrayResponseQuery;
+use ApiClientBundle\Tests\Fixtures\ArrayResponseUsingMethod;
+use ApiClientBundle\Tests\Fixtures\ArrayResponseUsingPhpDoc;
 use ApiClientBundle\Tests\Fixtures\SerializedNameQuery;
 use ApiClientBundle\Tests\Fixtures\SerializedNameResponse;
 use ApiClientBundle\Tests\Fixtures\TestClient;
 use ApiClientBundle\Tests\Fixtures\TestErrorResponse;
+use ApiClientBundle\Tests\Fixtures\TestFile;
+use ApiClientBundle\Tests\Fixtures\TestKernel;
 use ApiClientBundle\Tests\Fixtures\TestQuery;
 use ApiClientBundle\Tests\Fixtures\TestResponse;
 use ProxyManager\Proxy\GhostObjectInterface;
@@ -25,7 +30,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
- * @phpstan-type TAssertCallable callable(array<mixed>,object):bool
+ * @phpstan-type TAssertCallable callable(array<mixed>,object):(void|bool)
  */
 class ApiClientTest extends KernelTestCase
 {
@@ -55,7 +60,13 @@ class ApiClientTest extends KernelTestCase
         static::assertInstanceOf($expectedResponseInstance, $response);
         static::assertEquals($statusCode, $response->getStatusCode());
         if (null !== $responseAssertion) {
-            static::assertTrue($responseAssertion($responseData, $response));
+            static::assertThat(
+                $responseAssertion($responseData, $response),
+                static::logicalOr(
+                    static::isNull(),
+                    static::isTrue(),
+                )
+            );
         }
     }
 
@@ -205,6 +216,21 @@ class ApiClientTest extends KernelTestCase
             'expectedResponseInstance' => SerializedNameResponse::class,
             'assert' => static fn (array $responseData, SerializedNameResponse $response): bool => $responseData['foo_bar'] === $response->renamed,
         ];
+
+        foreach ([ArrayResponseUsingPhpDoc::class, ArrayResponseUsingMethod::class] as $responseClass) {
+            yield [
+                'query' => new ArrayResponseQuery($responseClass),
+                'responseData' => ['files' => $files = [['name' => 'test'], ['name' => 'foo']]],
+                'statusCode' => 200,
+                'expectedResponseInstance' => $responseClass,
+                'assert' => static function (array $responseData, ArrayResponseUsingPhpDoc|ArrayResponseUsingMethod $response) use ($files): void {
+                    foreach ($response->files as $file) {
+                        self::assertInstanceOf(TestFile::class, $file);
+                        self::assertContains($file->name, array_column($files, 'name'));
+                    }
+                },
+            ];
+        }
     }
 
     /**
@@ -218,9 +244,17 @@ class ApiClientTest extends KernelTestCase
 
     private function createMockedApiClient(MockResponse $mockResponse, bool $isAsync): ApiClientFactory
     {
+        /** @var ResponseFactory $responseFactory */
+        $responseFactory = self::getContainer()->get(ResponseFactory::class);
+
         $mockHttpClient = new MockHttpClient($mockResponse);
-        $responseFactory = new ResponseFactory($mockHttpClient);
+        $responseFactory->setHttpClient($mockHttpClient);
 
         return new ApiClientFactory([new TestClient($isAsync)], new Client($responseFactory));
+    }
+
+    protected static function getKernelClass(): string
+    {
+        return TestKernel::class;
     }
 }
