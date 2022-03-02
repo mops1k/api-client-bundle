@@ -14,23 +14,21 @@ use ApiClientBundle\Interfaces\HeadersInterface;
 use ApiClientBundle\Interfaces\QueryInterface;
 use ApiClientBundle\Interfaces\StatusCodeInterface;
 use ApiClientBundle\Model\GenericErrorResponse;
-use Doctrine\Common\Annotations\AnnotationReader;
 use ProxyManager\Factory\LazyLoadingGhostFactory;
 use ProxyManager\Proxy\GhostObjectInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Mime\Part\DataPart;
 use Symfony\Component\Mime\Part\Multipart\FormDataPart;
-use Symfony\Component\PropertyInfo\Extractor\PhpDocExtractor;
-use Symfony\Component\PropertyInfo\Extractor\ReflectionExtractor;
+use Symfony\Component\PropertyAccess\PropertyAccessorInterface;
+use Symfony\Component\PropertyInfo\PropertyInfoExtractorInterface;
 use Symfony\Component\Serializer\Encoder\ChainEncoder;
 use Symfony\Component\Serializer\Encoder\CsvEncoder;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
 use Symfony\Component\Serializer\Encoder\XmlEncoder;
 use Symfony\Component\Serializer\Encoder\YamlEncoder;
 use Symfony\Component\Serializer\Exception\ExceptionInterface as SerializerExceptionInterfaceAlias;
-use Symfony\Component\Serializer\Mapping\Factory\ClassMetadataFactory;
-use Symfony\Component\Serializer\Mapping\Loader\AnnotationLoader;
-use Symfony\Component\Serializer\NameConverter\MetadataAwareNameConverter;
+use Symfony\Component\Serializer\Mapping\Factory\ClassMetadataFactoryInterface;
+use Symfony\Component\Serializer\NameConverter\NameConverterInterface;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use Symfony\Component\Serializer\Normalizer\AbstractObjectNormalizer;
 use Symfony\Component\Serializer\Normalizer\ArrayDenormalizer;
@@ -53,18 +51,21 @@ final class ResponseFactory
 
     private Serializer $serializer;
 
-    public function __construct(private HttpClientInterface $httpClient)
-    {
+    public function __construct(
+        private HttpClientInterface $httpClient,
+        ClassMetadataFactoryInterface $classMetadataFactory,
+        NameConverterInterface $nameConverter,
+        PropertyInfoExtractorInterface $propertyInfoExtractor,
+        PropertyAccessorInterface $propertyAccessor,
+    ) {
         // Чтобы быть уверенными в том, что у нас сериализатор будет запускать в правильном порядке нормализаторы,
         // а также иметь уверенность, что все поддерживаемые форматы сериализатора включены и аттрибуты с аннотациями
         // читаются, независимо от конфигурации сериализатора в проекте
-        $classMetadataFactory = new ClassMetadataFactory(new AnnotationLoader(new AnnotationReader()));
-        $metadataAwareNameConverter = new MetadataAwareNameConverter($classMetadataFactory);
         $this->serializer = new Serializer(
             [
                 new ArrayDenormalizer(),
-                new PropertyNormalizer($classMetadataFactory, $metadataAwareNameConverter, new PhpDocExtractor()),
-                new ObjectNormalizer($classMetadataFactory, $metadataAwareNameConverter, null, new ReflectionExtractor()),
+                new PropertyNormalizer($classMetadataFactory, $nameConverter, $propertyInfoExtractor),
+                new ObjectNormalizer($classMetadataFactory, $nameConverter, $propertyAccessor, $propertyInfoExtractor),
             ],
             [
                 new JsonEncoder(),
@@ -331,7 +332,7 @@ final class ResponseFactory
         }
 
         $options = [
-            'base_uri' => \sprintf(
+            'base_uri' => sprintf(
                 '%s://%s',
                 $client->getConfiguration()->scheme(),
                 $client->getConfiguration()->domain()
@@ -339,8 +340,16 @@ final class ResponseFactory
             'headers' => $client->getConfiguration()->headers()->all(),
         ];
         $options = \array_merge_recursive($options, $client->getConfiguration()->options()->all());
-        $this->initializedClients[$client->getConfiguration()::class] = $this->httpClient->withOptions($options);
 
-        return $this->initializedClients[$client->getConfiguration()::class];
+        return $this->initializedClients[$client->getConfiguration()::class] ??= $this->httpClient->withOptions($options);
+    }
+
+    /**
+     * @internal
+     */
+    public function setHttpClient(HttpClientInterface $httpClient): void
+    {
+        $this->httpClient = $httpClient;
+        $this->initializedClients = [];
     }
 }
