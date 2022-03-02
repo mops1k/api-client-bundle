@@ -1,7 +1,12 @@
 services:
     ApiClientBundle\Http\ResponseFactory:
+        public: true
         arguments:
             - '@http_client'
+            - '@serializer.mapping.class_metadata_factory'
+            - '@serializer.name_converter.metadata_aware'
+            - '@property_info'
+            - '@property_accessor'
 
     ApiClientBundle\Http\Client:
         arguments:
