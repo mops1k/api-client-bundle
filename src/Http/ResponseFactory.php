@@ -31,6 +31,7 @@ use Symfony\Component\Serializer\Mapping\Factory\ClassMetadataFactory;
 use Symfony\Component\Serializer\Mapping\Loader\AnnotationLoader;
 use Symfony\Component\Serializer\NameConverter\MetadataAwareNameConverter;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
+use Symfony\Component\Serializer\Normalizer\AbstractObjectNormalizer;
 use Symfony\Component\Serializer\Normalizer\ArrayDenormalizer;
 use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
 use Symfony\Component\Serializer\Normalizer\PropertyNormalizer;
@@ -143,7 +144,10 @@ final class ResponseFactory
                     $data,
                     $object::class,
                     null,
-                    [AbstractNormalizer::OBJECT_TO_POPULATE => $object]
+                    [
+                        AbstractNormalizer::OBJECT_TO_POPULATE => $object,
+                        AbstractObjectNormalizer::ENABLE_MAX_DEPTH => true,
+                    ]
                 );
 
                 return $object;
@@ -205,7 +209,10 @@ final class ResponseFactory
                     $response->getContent(),
                     $ghostObject::class,
                     $query->serializerResponseFormat(),
-                    [AbstractNormalizer::OBJECT_TO_POPULATE => $ghostObject]
+                    [
+                        AbstractNormalizer::OBJECT_TO_POPULATE => $ghostObject,
+                        AbstractObjectNormalizer::ENABLE_MAX_DEPTH => true,
+                    ]
                 );
 
                 $this->addAdditionalData($response, $query, $ghostObject);
