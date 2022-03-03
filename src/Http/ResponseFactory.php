@@ -244,17 +244,23 @@ final class ResponseFactory
     {
         $formFields = $query->formData()->all();
         if ($query->files()->count() > 0) {
-            $query->headers()->set('Content-Type', 'multipart/form-data');
             foreach ($query->files()->all() as $key => $value) {
-                if (!is_iterable($value)) {
+                if (is_array($value)) {
+                    $formFields[$key] = [];
+                    foreach ($value as $item) {
+                        $formFields[$key][] = DataPart::fromPath($item);
+                    }
+
+                    continue;
+                }
+
+                if (is_string($value)) {
                     $formFields[$key] = DataPart::fromPath($value);
 
                     continue;
                 }
 
-                foreach ($value as $item) {
-                    $formFields[$key][] = $item;
-                }
+                throw new \LogicException(sprintf('Invalid files value type. Expected type string|string[], %s given', get_debug_type($value)));
             }
         }
 
