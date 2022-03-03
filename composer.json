@@ -1,5 +1,5 @@
 {
-  "name": "pik-broker/api-client-bundle",
+  "name": "mops1k/api-client-bundle",
   "description": "Client for making work with any api more easy",
   "type": "symfony-bundle",
   "require": {
@@ -37,7 +37,7 @@
   "authors": [
     {
       "name": "Aleksandr Kvintilyanov",
-      "email": "a.kvintilyanov@pik-broker.ru"
+      "email": "bednyj.mops@gmail.com"
     }
   ],
   "config": {
