@@ -4,18 +4,6 @@ Symfony библиотека, позволяющая выполнять запр
 объект ответ от апи.
 
 ## Установка
-1. Добавить в composer.json
-```json
-{
-  "repositories": [
-    {
-      "type": "composer",
-      "url": "https://git.structure.pik-broker.ru/api/v4/group/184/-/packages/composer/packages.json"
-    }
-  ]
-}
-```
-2. Выполнить
 ```bash
 composer require pik-broker/api-client-bundle
 ```
