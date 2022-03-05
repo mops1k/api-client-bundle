@@ -9,11 +9,14 @@ use ApiClientBundle\Exceptions\QueryException;
 use ApiClientBundle\Exceptions\QuerySerializationException;
 use ApiClientBundle\Exceptions\ResponseClassNotFoundException;
 use ApiClientBundle\Interfaces\ClientInterface;
+use ApiClientBundle\Interfaces\CollectionResponseInterface;
 use ApiClientBundle\Interfaces\GenericErrorResponseInterface;
 use ApiClientBundle\Interfaces\HeadersInterface;
+use ApiClientBundle\Interfaces\ImmutableCollectionInterface;
 use ApiClientBundle\Interfaces\QueryInterface;
 use ApiClientBundle\Interfaces\StatusCodeInterface;
 use ApiClientBundle\Model\GenericErrorResponse;
+use ApiClientBundle\Model\ImmutableCollection;
 use ProxyManager\Factory\LazyLoadingGhostFactory;
 use ProxyManager\Proxy\GhostObjectInterface;
 use Symfony\Component\HttpFoundation\Request;
@@ -91,7 +94,6 @@ final class ResponseFactory
     public function execute(ClientInterface $client, QueryInterface $query): object
     {
         return match ($client->getConfiguration()->isAsync()) {
-            // todo: вынести async вариант в отдельный класс
             true => $this->makeAsyncRequest($client, $query),
             false => $this->makeRequest($client, $query),
         };
@@ -155,11 +157,26 @@ final class ResponseFactory
                 return $object;
             }
 
-            $object = $this->serializer->deserialize(
-                $content,
-                $responseClassName,
-                $query->serializerResponseFormat()
-            );
+            if (is_a($responseClassName, CollectionResponseInterface::class, true)) {
+                $rawContent = match($query->serializerResponseFormat()) {
+                    JsonEncoder::FORMAT => '{"elements":'.$content.'}',
+                    XmlEncoder::FORMAT => '<elements>'.$content.'</elements>',
+                    YamlEncoder::FORMAT => 'elements:\n  '.$content,
+                    default => throw new QuerySerializationException($query),
+                };
+
+                $object = $this->serializer->deserialize(
+                    $rawContent,
+                    $responseClassName,
+                    $query->serializerResponseFormat()
+                );
+            } else {
+                $object = $this->serializer->deserialize(
+                    $content,
+                    $responseClassName,
+                    $query->serializerResponseFormat()
+                );
+            }
             assert(is_a($object, $responseClassName, false));
 
             $this->addAdditionalData($response, $query, $object);
@@ -207,15 +224,35 @@ final class ResponseFactory
                     $this->normalizeOptions($query)
                 );
 
-                $this->serializer->deserialize(
-                    $response->getContent(),
-                    $ghostObject::class,
-                    $query->serializerResponseFormat(),
-                    [
-                        AbstractNormalizer::OBJECT_TO_POPULATE => $ghostObject,
-                        AbstractObjectNormalizer::ENABLE_MAX_DEPTH => true,
-                    ]
-                );
+                $content = $response->getContent();
+                if (is_a($ghostObject::class, CollectionResponseInterface::class, true)) {
+                    $rawContent = match($query->serializerResponseFormat()) {
+                        JsonEncoder::FORMAT => '{"elements":'.$content.'}',
+                        XmlEncoder::FORMAT => '<elements>'.$content.'</elements>',
+                        YamlEncoder::FORMAT => 'elements:\n  '.$content,
+                        default => throw new QuerySerializationException($query),
+                    };
+
+                    $this->serializer->deserialize(
+                        $rawContent,
+                        $ghostObject::class,
+                        $query->serializerResponseFormat(),
+                        [
+                            AbstractNormalizer::OBJECT_TO_POPULATE => $ghostObject,
+                            AbstractObjectNormalizer::ENABLE_MAX_DEPTH => true,
+                        ]
+                    );
+                } else {
+                    $this->serializer->deserialize(
+                        $response->getContent(),
+                        $ghostObject::class,
+                        $query->serializerResponseFormat(),
+                        [
+                            AbstractNormalizer::OBJECT_TO_POPULATE => $ghostObject,
+                            AbstractObjectNormalizer::ENABLE_MAX_DEPTH => true,
+                        ]
+                    );
+                }
 
                 $this->addAdditionalData($response, $query, $ghostObject);
             } catch (HttpExceptionInterface $exception) {
