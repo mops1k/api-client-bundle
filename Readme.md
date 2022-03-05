@@ -5,7 +5,7 @@ Symfony библиотека, позволяющая выполнять запр
 
 ## Установка
 ```bash
-composer require pik-broker/api-client-bundle
+composer require mops1k/api-client-bundle
 ```
 
 ## Использование

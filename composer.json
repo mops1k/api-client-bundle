@@ -3,7 +3,8 @@
   "description": "Client for making work with any api more easy",
   "type": "symfony-bundle",
   "require": {
-    "php": ">=8.0",
+    "php": "~8.0.0",
+    "composer-runtime-api": "^2.1.0",
     "ocramius/proxy-manager": "^2.13",
     "symfony/framework-bundle": "^5.4|^6.0",
     "symfony/http-client": "^5.4|^6.0",
