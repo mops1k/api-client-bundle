@@ -108,6 +108,7 @@ class ApiClientTest extends KernelTestCase
             if ($statusCode > 400) {
                 $responseAssertion($responseData, $response);
                 if (isset($responseData['status'])) {
+                    /** @phpstan-ignore-next-line */
                     static::assertEquals($responseData['status'], $response->getStatus());
                 }
                 $responseAssertion($responseData, $response);
@@ -148,6 +149,7 @@ class ApiClientTest extends KernelTestCase
         $mockResponse = new MockResponse('', ['http_code' => 500]);
 
         $this->expectException(ClientConfigurationNotFoundException::class);
+        /** @phpstan-ignore-next-line */
         $this->createMockedApiClient($mockResponse, true)->use('\\NotExistsConfiguration');
     }
 
@@ -162,6 +164,7 @@ class ApiClientTest extends KernelTestCase
         $mockHttpClient = new MockHttpClient($mockResponse);
         $responseFactory->setHttpClient($mockHttpClient);
 
+        /** @phpstan-ignore-next-line */
         new ApiClientFactory([new TestQuery()], new Client($responseFactory));
     }
 
@@ -195,7 +198,7 @@ class ApiClientTest extends KernelTestCase
      *     query: QueryInterface,
      *     responseData: array<mixed>,
      *     statusCode: int,
-     *     expectedResponseInstance: class-string<AbstractResponse>,
+     *     expectedResponseInstance: class-string<AbstractResponse>|class-string<CollectionResponseInterface>,
      *     assert?: TAssertCallable
      * }>
      */
@@ -209,7 +212,7 @@ class ApiClientTest extends KernelTestCase
             'responseData' => [['item' => 1], ['item' => 2], ['item' => 3]],
             'statusCode' => 200,
             'expectedResponseInstance' => GenericCollectionResponse::class,
-            'assert' => static function(array $responseData, GenericCollectionResponse $response): bool {
+            'assert' => static function (array $responseData, GenericCollectionResponse $response): bool {
                 static::assertInstanceOf(ImmutableCollectionInterface::class, $response);
                 static::assertFalse($response->isEmpty());
                 static::assertCount(\count($responseData), $response);
@@ -219,9 +222,11 @@ class ApiClientTest extends KernelTestCase
                 static::assertSame($responseData[0], $response->first());
                 static::assertSame($responseData[2], $response->last());
                 static::assertSame(2, $response->key());
-                static::assertFalse($response->next());
+                $response->next();
+                static::assertNull($response->current());
+                static::assertFalse($response->valid());
                 $response->rewind();
-                static::assertSame($responseData[1], $response->current());
+                static::assertSame($responseData[2], $response->current());
                 static::assertTrue($response->contains(['item' => 2]));
                 static::assertTrue($response->containsKey(2));
                 static::assertFalse($response->containsKey(5));
@@ -229,7 +234,7 @@ class ApiClientTest extends KernelTestCase
                 static::assertSame([0, 1, 2], $response->getKeys());
                 static::assertIsArray($response->getValues());
 
-                $filteredResponse = $response->filter(fn($item) => $item['item'] !== 2);
+                $filteredResponse = $response->filter(fn ($item) => $item['item'] !== 2);
                 static::assertInstanceOf(ImmutableCollection::class, $filteredResponse);
                 static::assertNotInstanceOf(CollectionResponseInterface::class, $filteredResponse);
                 static::assertCount(2, $filteredResponse);
