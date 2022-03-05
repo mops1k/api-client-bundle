@@ -4,13 +4,13 @@ namespace ApiClientBundle\Model;
 
 use ApiClientBundle\Interfaces\ImmutableCollectionInterface;
 
-/**
- *
- */
 class ImmutableCollection implements ImmutableCollectionInterface
 {
     private int $position = 0;
 
+    /**
+     * @param array<int, mixed> $elements
+     */
     public function __construct(protected array $elements = [])
     {
     }
@@ -25,16 +25,9 @@ class ImmutableCollection implements ImmutableCollectionInterface
         return $this->elements[$this->position] ?? null;
     }
 
-    public function next(): mixed
+    public function next(): void
     {
         ++$this->position;
-        if ($this->valid()) {
-            return $this->elements[$this->position];
-        }
-
-        --$this->position;
-
-        return false;
     }
 
     public function key(): int
@@ -49,7 +42,7 @@ class ImmutableCollection implements ImmutableCollectionInterface
 
     public function rewind(): void
     {
-        if($this->position > 0) {
+        if ($this->position > 0) {
             --$this->position;
 
             return;

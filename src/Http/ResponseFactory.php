@@ -12,11 +12,9 @@ use ApiClientBundle\Interfaces\ClientInterface;
 use ApiClientBundle\Interfaces\CollectionResponseInterface;
 use ApiClientBundle\Interfaces\GenericErrorResponseInterface;
 use ApiClientBundle\Interfaces\HeadersInterface;
-use ApiClientBundle\Interfaces\ImmutableCollectionInterface;
 use ApiClientBundle\Interfaces\QueryInterface;
 use ApiClientBundle\Interfaces\StatusCodeInterface;
 use ApiClientBundle\Model\GenericErrorResponse;
-use ApiClientBundle\Model\ImmutableCollection;
 use ProxyManager\Factory\LazyLoadingGhostFactory;
 use ProxyManager\Proxy\GhostObjectInterface;
 use Symfony\Component\HttpFoundation\Request;
@@ -158,10 +156,10 @@ final class ResponseFactory
             }
 
             if (is_a($responseClassName, CollectionResponseInterface::class, true)) {
-                $rawContent = match($query->serializerResponseFormat()) {
-                    JsonEncoder::FORMAT => '{"elements":'.$content.'}',
-                    XmlEncoder::FORMAT => '<elements>'.$content.'</elements>',
-                    YamlEncoder::FORMAT => 'elements:\n  '.$content,
+                $rawContent = match ($query->serializerResponseFormat()) {
+                    JsonEncoder::FORMAT => '{"elements":' . $content . '}',
+                    XmlEncoder::FORMAT => '<elements>' . $content . '</elements>',
+                    YamlEncoder::FORMAT => 'elements:\n  ' . $content,
                     default => throw new QuerySerializationException($query),
                 };
 
@@ -226,10 +224,10 @@ final class ResponseFactory
 
                 $content = $response->getContent();
                 if (is_a($ghostObject::class, CollectionResponseInterface::class, true)) {
-                    $rawContent = match($query->serializerResponseFormat()) {
-                        JsonEncoder::FORMAT => '{"elements":'.$content.'}',
-                        XmlEncoder::FORMAT => '<elements>'.$content.'</elements>',
-                        YamlEncoder::FORMAT => 'elements:\n  '.$content,
+                    $rawContent = match ($query->serializerResponseFormat()) {
+                        JsonEncoder::FORMAT => '{"elements":' . $content . '}',
+                        XmlEncoder::FORMAT => '<elements>' . $content . '</elements>',
+                        YamlEncoder::FORMAT => 'elements:\n  ' . $content,
                         default => throw new QuerySerializationException($query),
                     };
 

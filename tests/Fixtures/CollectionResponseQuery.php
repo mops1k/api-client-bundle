@@ -6,6 +6,9 @@ use ApiClientBundle\Interfaces\ClientConfigurationInterface;
 use ApiClientBundle\Model\AbstractQueryWithGenericErrorResponse;
 use ApiClientBundle\Model\GenericCollectionResponse;
 
+/**
+ * @extends AbstractQueryWithGenericErrorResponse<GenericCollectionResponse>
+ */
 class CollectionResponseQuery extends AbstractQueryWithGenericErrorResponse
 {
     public function path(): string

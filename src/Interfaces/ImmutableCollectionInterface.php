@@ -3,11 +3,10 @@
 namespace ApiClientBundle\Interfaces;
 
 /**
- * @template T
+ * @extends \Iterator<int, mixed>
  */
 interface ImmutableCollectionInterface extends \Iterator, \Countable
 {
-
     /**
      * Checks whether an element is contained in the collection.
      * This is an O(n) operation, where n is the size of the collection.
@@ -26,8 +25,6 @@ interface ImmutableCollectionInterface extends \Iterator, \Countable
 
     /**
      * Gets the element at the specified key/index.
-     *
-     * @return mixed
      */
     public function get(int $key): mixed;
 
