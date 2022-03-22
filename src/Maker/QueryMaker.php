@@ -91,14 +91,14 @@ class QueryMaker extends AbstractMaker
         $refl = new \ReflectionClass($client);
         $namespacePart = \str_replace('Configuration', '', $refl->getShortName());
         $queryClassDetails = $generator->createClassNameDetails(
-            $inflector->camelize($method) . $queryName,
+            $inflector->classify($method) . $queryName,
             'External\\' . $namespacePart . '\\Query',
             'Query'
         );
         $responseClassDetails = $generator->createClassNameDetails(
             $queryName,
             'External\\' . $namespacePart . '\\Response',
-            $inflector->camelize($method) . 'Response'
+            $inflector->classify($method) . 'Response'
         );
 
         $errorResponseClassDetails = null;
