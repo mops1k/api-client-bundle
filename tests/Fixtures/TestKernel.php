@@ -14,10 +14,8 @@ class TestKernel extends Kernel
 {
     public function registerBundles(): iterable
     {
-        return [
-            new FrameworkBundle(),
-            new ApiClientBundle(),
-        ];
+        yield new FrameworkBundle();
+        yield new ApiClientBundle();
     }
 
     public function registerContainerConfiguration(LoaderInterface $loader): void

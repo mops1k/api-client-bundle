@@ -31,16 +31,29 @@ use ApiClientBundle\Tests\Fixtures\TestQuery;
 use ApiClientBundle\Tests\Fixtures\TestResponse;
 use ProxyManager\Proxy\GhostObjectInterface;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
+use Symfony\Component\HttpClient\HttpClient;
 use Symfony\Component\HttpClient\MockHttpClient;
 use Symfony\Component\HttpClient\Response\MockResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Serializer\Encoder\ChainEncoder;
+use Symfony\Component\Serializer\Encoder\CsvEncoder;
+use Symfony\Component\Serializer\Encoder\JsonEncoder;
+use Symfony\Component\Serializer\Encoder\XmlEncoder;
+use Symfony\Component\Serializer\Encoder\YamlEncoder;
+use Symfony\Component\Serializer\Normalizer\ArrayDenormalizer;
+use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
+use Symfony\Component\Serializer\Normalizer\PropertyNormalizer;
+use Symfony\Component\Serializer\Serializer;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 /**
  * @phpstan-type TAssertCallable callable(array<mixed>,object):(void|bool)
  */
 class ApiClientTest extends KernelTestCase
 {
+    private ?ApiClientFactory $mockedApiClient = null;
+
     /**
      * @dataProvider responseDataProvider
      *
@@ -332,13 +345,46 @@ class ApiClientTest extends KernelTestCase
 
     private function createMockedApiClient(MockResponse $mockResponse, bool $isAsync): ApiClientFactory
     {
+        if (null !== $this->mockedApiClient) {
+            return $this->mockedApiClient;
+        }
+
+        /** @var HttpClientInterface|HttpClient $httpClient */
+        $httpClient = self::getContainer()->get('http_client');
+
+        $classMetadataFactory = self::getContainer()->get('serializer.mapping.class_metadata_factory');
+        $nameConverter = self::getContainer()->get('serializer.name_converter.metadata_aware');
+        $propertyInfoExtractor = self::getContainer()->get('property_info');
+        $propertyAccessor = self::getContainer()->get('serializer.property_accessor');
+
+        // Т.к. TestKernel собирает минимальное ядро, где отсутствует большинство необходимых настроек,
+        // собираем Serializer сами, для того, чтобы в тестах присутствовали все необходимые зависимости
+        $serializer = new Serializer(
+            [
+                new ArrayDenormalizer(),
+                new PropertyNormalizer($classMetadataFactory, $nameConverter, $propertyInfoExtractor),
+                new ObjectNormalizer($classMetadataFactory, $nameConverter, $propertyAccessor, $propertyInfoExtractor),
+            ],
+            [
+                new JsonEncoder(),
+                new XmlEncoder(),
+                new YamlEncoder(),
+                new CsvEncoder(),
+                new ChainEncoder(),
+            ]
+        );
         /** @var ResponseFactory $responseFactory */
-        $responseFactory = self::getContainer()->get(ResponseFactory::class);
+        $responseFactory = new ResponseFactory(
+            $httpClient,
+            $serializer
+        );
 
         $mockHttpClient = new MockHttpClient($mockResponse);
         $responseFactory->setHttpClient($mockHttpClient);
 
-        return new ApiClientFactory([new TestClient($isAsync)], new Client($responseFactory));
+        $this->mockedApiClient = new ApiClientFactory([new TestClient($isAsync)], new Client($responseFactory));
+
+        return $this->mockedApiClient;
     }
 
     protected static function getKernelClass(): string
