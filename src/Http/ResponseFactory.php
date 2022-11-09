@@ -36,6 +36,7 @@ use Symfony\Component\Serializer\Normalizer\ArrayDenormalizer;
 use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
 use Symfony\Component\Serializer\Normalizer\PropertyNormalizer;
 use Symfony\Component\Serializer\Serializer;
+use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Contracts\HttpClient\Exception\DecodingExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\ExceptionInterface as HttpClientExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\HttpExceptionInterface;
@@ -50,7 +51,10 @@ final class ResponseFactory
      */
     private array $initializedClients = [];
 
-    private Serializer $serializer;
+    /**
+     * @var Serializer
+     */
+    private SerializerInterface $serializer;
 
     public function __construct(
         private HttpClientInterface $httpClient,
@@ -264,6 +268,7 @@ final class ResponseFactory
             return true;
         };
 
+        // @phpstan-ignore-next-line
         return $lazyLoadingFactory->createProxy($query->responseClassName(), $initializer);
     }
 
