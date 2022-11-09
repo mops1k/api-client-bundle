@@ -21,5 +21,114 @@ composer require mops1k/api-client-bundle
 отвечают за выполнение запроса к конкретному эндпоинту стороннего api. Во время выполнения команды, также будут заданы
 уточняющие вопросы, необходимые для генерации необходимых классов.
 
-### Ручная конфигурация клиента 
-`TODO: написать краткую инструкцию (пока документации нет, временный пример можно посмотреть в тестах)`
+### Ручная конфигурация клиента
+
+Как пример возьмём вымышленный эндпоинт `https://example.com/api/status`, который присылает ответ:
+
+```json
+{
+  "status": true
+}
+```
+
+1. Создадим класс-клиент:
+
+```php
+<?php
+
+use ApiClientBundle\Model\AbstractClientConfiguration;
+
+class ExampleClient extends AbstractClientConfiguration
+{
+    public function domain(): string
+    {
+        return 'example.com';
+    }
+
+    public function scheme(): string
+    {
+        return self::SCHEME_SSL;
+    }
+
+    public function isAsync(): bool
+    {
+        return false;
+    }
+}
+```
+
+2. Создадим класс конфигуратор запроса:
+
+```php
+<?php
+
+use ApiClientBundle\Interfaces\ClientConfigurationInterface;
+use ApiClientBundle\Model\AbstractQuery;
+use ApiClientBundle\Model\GenericErrorResponse;use Symfony\Component\HttpFoundation\Request;
+
+/**
+ * @extends AbstractQuery<TestResponse, TestErrorResponse>
+ */
+class StatusQuery extends AbstractQuery
+{
+    public function method(): string
+    {
+        return Request::METHOD_GET;
+    }
+
+    public function path(): string
+    {
+        return '/api/status';
+    }
+
+    public function support(ClientConfigurationInterface $clientConfiguration): bool
+    {
+        return $clientConfiguration instanceof ExampleClient;
+    }
+
+    public function responseClassName(): string
+    {
+        return StatusResponse::class;
+    }
+
+    public function errorResponseClassName(): string
+    {
+        return GenericErrorResponse::class;
+    }
+}
+```
+
+3. Создадим класс DTO ответа:
+```php
+<?php
+
+use ApiClientBundle\Model\AbstractResponse;
+
+class StatusResponse extends AbstractResponse
+{
+    protected bool $status;
+
+    public function getStatus(): bool
+    {
+        return $this->status;
+    }
+}
+```
+
+На этом конфигурация клиента и запроса завершена!
+
+Чтобы выполнить запрос, достаточно вызвать такой код:
+
+```php
+<?php
+
+use ApiClientBundle\Service\ApiClientFactory;
+
+// получаем ApiClientFactory через DI
+
+/** @var ApiClientFactory $apiClientFactory */
+$client = $apiClientFactory->use(ExampleClient::class);
+$response = $client->request(new StatusQuery());
+
+$response->getStatus();
+```
