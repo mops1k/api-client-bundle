@@ -24,8 +24,6 @@ rules:
     - PHPStan\Rules\VariableVariables\VariableStaticMethodCallRule
     - PHPStan\Rules\VariableVariables\VariableStaticPropertyFetchRule
     - PHPStan\Rules\VariableVariables\VariableVariablesRule
-#    - App\PhpStan\CatchThrowableInspection
-#    - App\PhpStan\InsaneComparisonRule
 services:
     - PHPStan\Rules\Operators\OperatorRuleHelper
 parameters:

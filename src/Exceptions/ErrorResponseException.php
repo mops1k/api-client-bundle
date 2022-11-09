@@ -18,6 +18,7 @@ class ErrorResponseException extends \RuntimeException implements GenericErrorRe
         GhostObjectInterface $responseObject,
         \Throwable $previous = null,
     ) {
+        // @phpstan-ignore-next-line
         $responseObject->setProxyInitializer(fn (
             GhostObjectInterface $ghostObject,
             string $method,

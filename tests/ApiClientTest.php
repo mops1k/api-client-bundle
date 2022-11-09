@@ -86,7 +86,7 @@ class ApiClientTest extends KernelTestCase
      * @param QueryInterface<TResponse, TErrorResponse> $queryObject
      * @param array<mixed>|string $responseData
      * @param class-string<AbstractResponse> $expectedResponseInstance
-     * @param TAssertCallable|null $responseAssertion
+     * @param TAssertCallable|callable|null $responseAssertion
      */
     public function testSendAsyncRequest(
         QueryInterface $queryObject,
@@ -253,6 +253,7 @@ class ApiClientTest extends KernelTestCase
                 JSON_THROW_ON_ERROR
             ),
         ];
+
         yield [
             'query' => new TestQuery(),
             'responseData' => ['status' => true],
@@ -260,6 +261,7 @@ class ApiClientTest extends KernelTestCase
             'expectedResponseInstance' => TestResponse::class,
             'assert' => $assertion1,
         ];
+
         yield [
             'query' => new TestQuery(),
             'responseData' => ['status' => false],
@@ -267,6 +269,7 @@ class ApiClientTest extends KernelTestCase
             'expectedResponseInstance' => TestErrorResponse::class,
             'assert' => $assertion2,
         ];
+
         yield [
             'query' => new TestQuery(),
             'responseData' => ['status' => false],
@@ -274,6 +277,7 @@ class ApiClientTest extends KernelTestCase
             'expectedResponseInstance' => TestErrorResponse::class,
             'assert' => $assertion2,
         ];
+
         yield [
             'query' => new TestQuery(),
             'responseData' => ['status' => false],
@@ -290,20 +294,31 @@ class ApiClientTest extends KernelTestCase
             'assert' => static fn (array $responseData, SerializedNameResponse $response): bool => $responseData['foo_bar'] === $response->renamed,
         ];
 
-        foreach ([ArrayResponseUsingPhpDoc::class, ArrayResponseUsingMethod::class] as $responseClass) {
-            yield [
-                'query' => new ArrayResponseQuery($responseClass),
-                'responseData' => ['files' => $files = [['name' => 'test'], ['name' => 'foo']]],
-                'statusCode' => 200,
-                'expectedResponseInstance' => $responseClass,
-                'assert' => static function (array $responseData, ArrayResponseUsingPhpDoc|ArrayResponseUsingMethod $response) use ($files): void {
-                    foreach ($response->files as $file) {
-                        self::assertInstanceOf(TestFile::class, $file);
-                        self::assertContains($file->name, array_column($files, 'name'));
-                    }
-                },
-            ];
-        }
+        yield [
+            'query' => new ArrayResponseQuery(ArrayResponseUsingMethod::class),
+            'responseData' => ['files' => $files = [['name' => 'test'], ['name' => 'foo']]],
+            'statusCode' => 200,
+            'expectedResponseInstance' => ArrayResponseUsingMethod::class,
+            'assert' => static function (array $responseData, ArrayResponseUsingMethod $response) use ($files): void {
+                foreach ($response->files as $file) {
+                    self::assertInstanceOf(TestFile::class, $file);
+                    self::assertContains($file->name, array_column($files, 'name'));
+                }
+            },
+        ];
+
+        yield [
+            'query' => new ArrayResponseQuery(ArrayResponseUsingPhpDoc::class),
+            'responseData' => ['files' => $files = [['name' => 'test'], ['name' => 'foo']]],
+            'statusCode' => 200,
+            'expectedResponseInstance' => ArrayResponseUsingPhpDoc::class,
+            'assert' => static function (array $responseData, ArrayResponseUsingPhpDoc $response) use ($files): void {
+                foreach ($response->files as $file) {
+                    self::assertInstanceOf(TestFile::class, $file);
+                    self::assertContains($file->name, array_column($files, 'name'));
+                }
+            },
+        ];
     }
 
     /**
