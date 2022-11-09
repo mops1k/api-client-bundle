@@ -66,9 +66,6 @@ use ApiClientBundle\Interfaces\ClientConfigurationInterface;
 use ApiClientBundle\Model\AbstractQuery;
 use ApiClientBundle\Model\GenericErrorResponse;use Symfony\Component\HttpFoundation\Request;
 
-/**
- * @extends AbstractQuery<TestResponse, TestErrorResponse>
- */
 class StatusQuery extends AbstractQuery
 {
     public function method(): string
