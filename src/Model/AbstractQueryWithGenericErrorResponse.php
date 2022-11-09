@@ -6,6 +6,7 @@ namespace ApiClientBundle\Model;
 
 /**
  * @template TResponse of object
+ *
  * @extends AbstractQuery<TResponse, GenericErrorResponse>
  */
 abstract class AbstractQueryWithGenericErrorResponse extends AbstractQuery

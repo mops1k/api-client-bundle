@@ -87,6 +87,7 @@ class QueryMaker extends AbstractMaker
         $isDefaultErrorResponse = $io->askQuestion($question);
 
 
+        // @phpstan-ignore-next-line
         $inflector = InflectorFactory::create()->build();
         $refl = new \ReflectionClass($client);
         $namespacePart = \str_replace('Configuration', '', $refl->getShortName());
