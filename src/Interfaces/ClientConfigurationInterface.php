@@ -16,8 +16,14 @@ interface ClientConfigurationInterface
      */
     public function scheme(): string;
 
+    /**
+     * @return ParameterBag<mixed>
+     */
     public function options(): ParameterBag;
 
+    /**
+     * @return ParameterBag<mixed>
+     */
     public function headers(): ParameterBag;
 
     public function isAsync(): bool;

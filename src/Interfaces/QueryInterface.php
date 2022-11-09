@@ -15,16 +15,34 @@ interface QueryInterface
 
     public function method(): string;
 
+    /**
+     * @return ParameterBag<mixed>
+     */
     public function options(): ParameterBag;
 
+    /**
+     * @return ParameterBag<mixed>
+     */
     public function jsonData(): ParameterBag;
 
+    /**
+     * @return ParameterBag<mixed>
+     */
     public function queryData(): ParameterBag;
 
+    /**
+     * @return ParameterBag<mixed>
+     */
     public function formData(): ParameterBag;
 
+    /**
+     * @return ParameterBag<mixed>
+     */
     public function files(): ParameterBag;
 
+    /**
+     * @return ParameterBag<mixed>
+     */
     public function headers(): ParameterBag;
 
     public function support(ClientConfigurationInterface $clientConfiguration): bool;
