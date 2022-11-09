@@ -20,21 +20,12 @@ use ProxyManager\Proxy\GhostObjectInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Mime\Part\DataPart;
 use Symfony\Component\Mime\Part\Multipart\FormDataPart;
-use Symfony\Component\PropertyAccess\PropertyAccessorInterface;
-use Symfony\Component\PropertyInfo\PropertyInfoExtractorInterface;
-use Symfony\Component\Serializer\Encoder\ChainEncoder;
-use Symfony\Component\Serializer\Encoder\CsvEncoder;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
 use Symfony\Component\Serializer\Encoder\XmlEncoder;
 use Symfony\Component\Serializer\Encoder\YamlEncoder;
 use Symfony\Component\Serializer\Exception\ExceptionInterface as SerializerExceptionInterfaceAlias;
-use Symfony\Component\Serializer\Mapping\Factory\ClassMetadataFactoryInterface;
-use Symfony\Component\Serializer\NameConverter\NameConverterInterface;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use Symfony\Component\Serializer\Normalizer\AbstractObjectNormalizer;
-use Symfony\Component\Serializer\Normalizer\ArrayDenormalizer;
-use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
-use Symfony\Component\Serializer\Normalizer\PropertyNormalizer;
 use Symfony\Component\Serializer\Serializer;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Contracts\HttpClient\Exception\DecodingExceptionInterface;
@@ -52,34 +43,12 @@ final class ResponseFactory
     private array $initializedClients = [];
 
     /**
-     * @var Serializer
+     * @param Serializer $serializer
      */
-    private SerializerInterface $serializer;
-
     public function __construct(
         private HttpClientInterface $httpClient,
-        ClassMetadataFactoryInterface $classMetadataFactory,
-        NameConverterInterface $nameConverter,
-        PropertyInfoExtractorInterface $propertyInfoExtractor,
-        PropertyAccessorInterface $propertyAccessor,
+        private SerializerInterface $serializer,
     ) {
-        // Чтобы быть уверенными в том, что у нас сериализатор будет запускать в правильном порядке нормализаторы,
-        // а также иметь уверенность, что все поддерживаемые форматы сериализатора включены и аттрибуты с аннотациями
-        // читаются, независимо от конфигурации сериализатора в проекте
-        $this->serializer = new Serializer(
-            [
-                new ArrayDenormalizer(),
-                new PropertyNormalizer($classMetadataFactory, $nameConverter, $propertyInfoExtractor),
-                new ObjectNormalizer($classMetadataFactory, $nameConverter, $propertyAccessor, $propertyInfoExtractor),
-            ],
-            [
-                new JsonEncoder(),
-                new XmlEncoder(),
-                new YamlEncoder(),
-                new CsvEncoder(),
-                new ChainEncoder(),
-            ]
-        );
     }
 
     /**
