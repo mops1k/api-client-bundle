@@ -87,7 +87,7 @@ abstract class AbstractQuery implements QueryInterface
             return $this->storedServices[$this->service];
         }
 
-        $this->storedServices[$this->service] = new $this->service;
+        $this->storedServices[$this->service] = new $this->service();
 
         return $this->storedServices[$this->service];
     }
