@@ -10,13 +10,11 @@ use ApiClientBundle\Tests\Mock\Query;
 use ApiClientBundle\Tests\Mock\Response;
 use ApiClientBundle\Tests\Stubs\Kernel;
 use GuzzleHttp\Psr7\Response as HttpResponse;
-use Http\Client\Common\Exception\ClientErrorException;
 use Http\Discovery\Psr17Factory;
 use Http\Discovery\Psr18ClientDiscovery;
 use Http\Discovery\Strategy\MockClientStrategy;
 use Http\Message\RequestMatcher\RequestMatcher;
 use Http\Mock\Client as MockHttpClient;
-use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestInterface;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 

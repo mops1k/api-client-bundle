@@ -33,7 +33,7 @@
     "psr/cache-implementation": "2.0|3.0",
     "roave/security-advisories": "dev-latest",
     "symfony/config": "^6.3",
-    "symfony/http-client": "^7.0",
+    "symfony/http-client": "^6.3",
     "symfony/property-access": "^6.3",
     "symfony/property-info": "^6.3",
     "symfony/var-exporter": "^6.3",
