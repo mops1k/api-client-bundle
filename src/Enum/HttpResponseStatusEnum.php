@@ -80,6 +80,6 @@ enum HttpResponseStatusEnum: string
 
     public function getCode(): int
     {
-        return (int) substr($this->name, 7);
+        return (int)substr($this->name, 7);
     }
 }
