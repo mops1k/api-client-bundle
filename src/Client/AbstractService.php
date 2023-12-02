@@ -6,10 +6,6 @@ abstract class AbstractService implements ServiceInterface
 {
     protected string $host;
     protected string $scheme;
-    /**
-     * @var array<mixed>
-     */
-    protected array $defaultOptions = [];
     protected int $port = 80;
 
     public function getHost(): string
@@ -25,10 +21,5 @@ abstract class AbstractService implements ServiceInterface
     public function getScheme(): string
     {
         return $this->scheme;
-    }
-
-    public function getDefaultOptions(): array
-    {
-        return $this->defaultOptions;
     }
 }

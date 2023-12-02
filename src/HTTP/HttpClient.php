@@ -27,18 +27,24 @@ final class HttpClient
     public function __construct(
         private readonly SerializerInterface $serializer,
         /**
-         * @var iterable<Plugin>
+         * @var \Traversable<Plugin>|null
          */
-        private readonly iterable $plugins = [],
+        protected readonly ?\Traversable $plugins = null,
         private ?ClientInterface $client = null,
     ) {
+        if (!$this->client instanceof PluginClient) {
+            $this->client = new PluginClient(
+                client: $this->client ?? Psr18ClientDiscovery::find(),
+                plugins: $plugins === null ? [] : \iterator_to_array($plugins),
+            );
+        }
         $this->requestFactory = Psr17FactoryDiscovery::findRequestFactory();
         $this->streamFactory = Psr17FactoryDiscovery::findStreamFactory();
     }
 
     public function request(QueryInterface $query): ResponseInterface
     {
-        $client = $this->getClientForQuery($query);
+        $client = $this->client;
 
         $request = $this->requestFactory->createRequest(
             $query->getMethod()->value,
@@ -82,17 +88,5 @@ final class HttpClient
                 previous: $e
             );
         }
-    }
-
-    private function getClientForQuery(QueryInterface $query): ClientInterface
-    {
-        if (!$this->client instanceof PluginClient) {
-            $this->client = new PluginClient(
-                client: $this->client ?? Psr18ClientDiscovery::find(),
-                plugins: \iterator_to_array($this->plugins),
-            );
-        }
-
-        return $this->client;
     }
 }

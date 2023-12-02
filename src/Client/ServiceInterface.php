@@ -9,9 +9,4 @@ interface ServiceInterface
     public function getPort(): int;
 
     public function getScheme(): string;
-
-    /**
-     * @return array<mixed>
-     */
-    public function getDefaultOptions(): array;
 }
