@@ -32,19 +32,13 @@ final class HttpClient
         protected readonly ?\Traversable $plugins = null,
         private ?ClientInterface $client = null,
     ) {
-        if (!$this->client instanceof PluginClient) {
-            $this->client = new PluginClient(
-                client: $this->client ?? Psr18ClientDiscovery::find(),
-                plugins: $plugins === null ? [] : \iterator_to_array($plugins),
-            );
-        }
         $this->requestFactory = Psr17FactoryDiscovery::findRequestFactory();
         $this->streamFactory = Psr17FactoryDiscovery::findStreamFactory();
     }
 
     public function request(QueryInterface $query): ResponseInterface
     {
-        $client = $this->client;
+        $client = $this->getClient();
 
         $request = $this->requestFactory->createRequest(
             $query->getMethod()->value,
@@ -88,5 +82,17 @@ final class HttpClient
                 previous: $e
             );
         }
+    }
+
+    private function getClient(): ClientInterface
+    {
+        if (!$this->client instanceof PluginClient) {
+            $this->client = new PluginClient(
+                client: $this->client ?? Psr18ClientDiscovery::find(),
+                plugins: $this->plugins === null ? [] : \iterator_to_array($this->plugins),
+            );
+        }
+
+        return $this->client;
     }
 }
