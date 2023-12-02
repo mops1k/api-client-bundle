@@ -11,7 +11,7 @@ return static function (ContainerConfigurator $container): void {
 
     $services->set(ErrorPlugin::class)
              ->arg('$config', [
-                 'only_server_exception' => false
+                 'only_server_exception' => false,
              ])
              ->tag('api.http_client.plugin')
     ;

@@ -12,7 +12,7 @@ class HttpRequestException extends HttpException
     public function __construct(
         RequestInterface $request,
         ResponseInterface $response,
-        \Exception $previous = null
+        \Exception $previous = null,
     ) {
         $httpStatusEnum = HttpResponseStatusEnum::tryFromCode($response->getStatusCode());
 

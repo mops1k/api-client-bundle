@@ -67,13 +67,14 @@ enum HttpResponseStatusEnum: string
     case STATUS_510 = 'Not Extended';                                                // RFC2774
     case STATUS_511 = 'Network Authentication Required';
 
-    public static function tryFromCode(int $code) : self {
+    public static function tryFromCode(int $code): self
+    {
         foreach (self::cases() as $enum) {
-            if ($enum->name === 'STATUS_'.$code) {
+            if ($enum->name === 'STATUS_' . $code) {
                 return $enum;
             }
         }
 
-        throw new \Exception("Not a valid http code");
+        throw new \Exception('Not a valid http code');
     }
 }
