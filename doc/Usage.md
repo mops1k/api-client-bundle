@@ -64,15 +64,20 @@ class MyResponse implements ResponseInterface
 
 namespace App\Controller;
 
-use ApiClientBundle\HTTP\HttpClient;use App\Remote\Api\MyQuery;
-#{AsController]
-class Controller
+use ApiClientBundle\HTTP\HttpClient;
+use App\Remote\Api\MyQuery;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Response;
+
+class Controller extends AbstractController
 {
     public function __invoke(HttpClient $httpClient)
     {
         $query = new MyQuery();
         $query->setQuery(['example' => 'simple'])
         $response = $httpClient->request($query);
+        
+        return new Response($response->status);
     }
 }
 ```
