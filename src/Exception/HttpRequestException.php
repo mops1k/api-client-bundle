@@ -7,7 +7,7 @@ use Http\Client\Exception\HttpException;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 
-class HttpRequestException extends HttpException
+final class HttpRequestException extends HttpException
 {
     public function __construct(
         RequestInterface $request,
