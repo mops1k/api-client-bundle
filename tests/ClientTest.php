@@ -3,9 +3,9 @@
 namespace ApiClientBundle\Tests;
 
 use ApiClientBundle\HTTP\HttpClient;
-use ApiClientBundle\Tests\Mock\Kernel;
 use ApiClientBundle\Tests\Mock\Query;
 use ApiClientBundle\Tests\Mock\Response;
+use ApiClientBundle\Tests\Stubs\Kernel;
 use GuzzleHttp\Psr7\Response as HttpResponse;
 use Http\Discovery\Psr17Factory;
 use Http\Discovery\Psr18ClientDiscovery;
@@ -28,7 +28,7 @@ class ClientTest extends KernelTestCase
         $mockHttpClient = Psr18ClientDiscovery::find();
         self::assertInstanceOf(MockHttpClient::class, $mockHttpClient);
 
-        $mockResponseContents = \file_get_contents(__DIR__ . '/_data/response/ok.json');
+        $mockResponseContents = \file_get_contents(__DIR__ . '/Stubs/Response/ok.json');
         $mockResponse = $this->createMock(HttpResponse::class);
 
         $requestMatcher = new RequestMatcher();

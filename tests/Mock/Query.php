@@ -11,10 +11,9 @@ class Query extends AbstractQuery
     protected ?string $path = 'posts';
     protected HttpMethodEnum $method = HttpMethodEnum::GET;
 
-    protected string $service = Service::class;
-
     /**
      * @var class-string<ResponseInterface>
      */
     protected string $response = Response::class;
+    protected string $service = Service::class;
 }

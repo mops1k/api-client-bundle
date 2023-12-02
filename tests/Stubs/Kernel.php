@@ -1,6 +1,6 @@
 <?php
 
-namespace ApiClientBundle\Tests\Mock;
+namespace ApiClientBundle\Tests\Stubs;
 
 use ApiClientBundle\ApiClientBundle;
 use Symfony\Bundle\FrameworkBundle\FrameworkBundle;
@@ -21,7 +21,15 @@ class Kernel extends BaseKernel
     public function registerContainerConfiguration(LoaderInterface $loader): void
     {
         $loader->load(function (ContainerBuilder $container) {
-            $container->prependExtensionConfig('framework', ['test' => true]);
+            $container->prependExtensionConfig('framework', [
+                'test' => true,
+                'property_access' => [
+                    'enabled' => true,
+                ],
+                'property_info' => [
+                    'enabled' => true,
+                ],
+            ]);
         });
     }
 }
