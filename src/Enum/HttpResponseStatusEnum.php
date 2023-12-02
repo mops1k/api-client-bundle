@@ -77,4 +77,9 @@ enum HttpResponseStatusEnum: string
 
         throw new \Exception('Not a valid http code');
     }
+
+    public function getCode(): int
+    {
+        return (int) substr($this->name, 7);
+    }
 }
