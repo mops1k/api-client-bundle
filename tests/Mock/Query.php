@@ -7,7 +7,6 @@ use ApiClientBundle\Enum\HttpMethodEnum;
 
 class Query extends AbstractQuery
 {
-
     protected ?string $path = 'posts';
     protected HttpMethodEnum $method = HttpMethodEnum::GET;
 
