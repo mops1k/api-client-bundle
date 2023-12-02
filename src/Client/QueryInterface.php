@@ -31,11 +31,6 @@ interface QueryInterface
      */
     public function getHeaders(): array;
 
-    /**
-     * @return array<mixed>
-     */
-    public function getOptions(): array;
-
     public function getService(): ServiceInterface;
 
     /**

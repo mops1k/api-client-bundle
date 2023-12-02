@@ -14,11 +14,9 @@ use Http\Client\Common\Plugin;
 use Http\Client\Common\PluginClient;
 use Http\Discovery\Psr17FactoryDiscovery;
 use Http\Discovery\Psr18ClientDiscovery;
-use Psr\Http\Client\ClientExceptionInterface;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\StreamFactoryInterface;
-use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Serializer\SerializerInterface;
 
 final class HttpClient
@@ -89,13 +87,9 @@ final class HttpClient
     private function getClientForQuery(QueryInterface $query): ClientInterface
     {
         if (!$this->client instanceof PluginClient) {
-            $defaultOptions = $query->getService()->getDefaultOptions();
-            $options = array_merge_recursive($defaultOptions, $query->getOptions());
-
             $this->client = new PluginClient(
                 client: $this->client ?? Psr18ClientDiscovery::find(),
                 plugins: \iterator_to_array($this->plugins),
-                options: $options
             );
         }
 

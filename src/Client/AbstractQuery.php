@@ -26,11 +26,6 @@ abstract class AbstractQuery implements QueryInterface
     protected array $headers = [];
 
     /**
-     * @var array<mixed>
-     */
-    protected array $options = [];
-
-    /**
      * @var class-string<ServiceInterface>
      */
     protected string $service;
@@ -76,11 +71,6 @@ abstract class AbstractQuery implements QueryInterface
         return $this->headers;
     }
 
-    public function getOptions(): array
-    {
-        return $this->options;
-    }
-
     public function getService(): ServiceInterface
     {
         if (array_key_exists($this->service, $this->storedServices)) {
@@ -92,6 +82,9 @@ abstract class AbstractQuery implements QueryInterface
         return $this->storedServices[$this->service];
     }
 
+    /**
+     * @return class-string<ResponseInterface>
+     */
     public function getResponse(): string
     {
         return $this->response;
