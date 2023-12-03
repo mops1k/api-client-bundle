@@ -3,6 +3,7 @@
 namespace ApiClientBundle\Client;
 
 use ApiClientBundle\Enum\HttpMethodEnum;
+use Http\Client\Common\Plugin;
 
 abstract class AbstractQuery implements QueryInterface
 {
@@ -40,6 +41,11 @@ abstract class AbstractQuery implements QueryInterface
      * @var array<string, string|array<string>>|null
      */
     protected ?array $files = null;
+
+    /**
+     * @var array<Plugin>
+     */
+    protected array $plugins = [];
 
     /**
      * @var array<string, ServiceInterface>
@@ -108,5 +114,10 @@ abstract class AbstractQuery implements QueryInterface
     public function getFiles(): null|array
     {
         return $this->files;
+    }
+
+    public function getPlugins(): array
+    {
+        return $this->plugins;
     }
 }

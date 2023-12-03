@@ -36,7 +36,7 @@ final class HttpClient
 
     public function request(QueryInterface $query): ResponseInterface
     {
-        $client = $this->getClient();
+        $client = $this->getClient($query);
 
         $request = $this->requestFactory->createRequest(
             $query->getMethod()->value,
@@ -90,15 +90,41 @@ final class HttpClient
         }
     }
 
-    private function getClient(): ClientInterface
+    private function getClient(QueryInterface $query): ClientInterface
     {
         if (!$this->client instanceof PluginClient) {
+            $plugins = $this->plugins === null ? [] : \iterator_to_array($this->plugins);
+            $servicePlugins = $query->getService()->getPlugins();
+            $queryPlugins = $query->getPlugins();
+            $this->mergePlugins($plugins, $servicePlugins);
+            $this->mergePlugins($plugins, $queryPlugins);
+
             $this->client = new PluginClient(
                 client: $this->client ?? Psr18ClientDiscovery::find(),
-                plugins: $this->plugins === null ? [] : \iterator_to_array($this->plugins),
+                plugins: $plugins,
             );
         }
 
         return $this->client;
+    }
+
+    /**
+     * @param array<Plugin> $basePlugins
+     * @param array<Plugin> $plugins
+     */
+    private function mergePlugins(array &$basePlugins, array $plugins): void
+    {
+        foreach ($basePlugins as $key => $basePlugin) {
+            $basePluginName = $basePlugin::class;
+            foreach ($plugins as $plugin) {
+                if ($basePluginName === $plugin::class) {
+                    $basePlugins[$key] = $plugin;
+
+                    break;
+                }
+
+                $basePlugins[] = $plugin;
+            }
+        }
     }
 }

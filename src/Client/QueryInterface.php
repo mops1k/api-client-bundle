@@ -3,6 +3,7 @@
 namespace ApiClientBundle\Client;
 
 use ApiClientBundle\Enum\HttpMethodEnum;
+use Http\Client\Common\Plugin;
 
 interface QueryInterface
 {
@@ -46,4 +47,9 @@ interface QueryInterface
     public function getResponse(): string;
 
     public function getFormat(): string;
+
+    /**
+     * @return array<Plugin>
+     */
+    public function getPlugins(): array;
 }
