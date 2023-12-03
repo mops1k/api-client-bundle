@@ -55,7 +55,7 @@ class RequestBodyBuilder implements QueryBuilderInterface
                     $file = new \SplFileInfo($path);
                     $multipartStreamBuilder->addResource(
                         $key,
-                        fopen($file->getRealPath(), 'rb'),
+                        fopen($file->getRealPath(), 'r'),
                         ['filename' => $file->getFilename()]
                     );
                 }
