@@ -13,7 +13,6 @@ class MyService extends AbstractService
 {
     protected string $scheme = 'http';
     protected string $host = 'some-host.ru'
-    protected int $port = 8080; // default 80
 }
 ```
 
