@@ -14,15 +14,14 @@ use Http\Client\Common\Plugin;
 use Http\Client\Common\PluginClient;
 use Http\Discovery\Psr17FactoryDiscovery;
 use Http\Discovery\Psr18ClientDiscovery;
+use Psr\Http\Client\ClientExceptionInterface;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
-use Psr\Http\Message\StreamFactoryInterface;
 use Symfony\Component\Serializer\SerializerInterface;
 
 final class HttpClient
 {
     private RequestFactoryInterface $requestFactory;
-    private StreamFactoryInterface $streamFactory;
 
     public function __construct(
         private readonly SerializerInterface $serializer,
@@ -33,7 +32,6 @@ final class HttpClient
         private ?ClientInterface $client = null,
     ) {
         $this->requestFactory = Psr17FactoryDiscovery::findRequestFactory();
-        $this->streamFactory = Psr17FactoryDiscovery::findStreamFactory();
     }
 
     public function request(QueryInterface $query): ResponseInterface
@@ -46,11 +44,14 @@ final class HttpClient
         );
         $body = RequestBodyBuilder::build($query);
         if (null !== $body) {
-            $request->withBody($this->streamFactory->createStream($body));
+            $request = $request->withBody($body['stream']);
+            if (null !== $body['boundary']) {
+                $request = $request->withHeader('Content-Type', 'multipart/form-data; boundary="' . $body['boundary'] . '"');
+            }
         }
 
         foreach ($query->getHeaders() as $name => $value) {
-            $request->withHeader($name, $value);
+            $request = $request->withHeader($name, $value);
         }
 
         try {
@@ -79,6 +80,11 @@ final class HttpClient
             throw new ServerErrorException(
                 request: $e->getRequest(),
                 response: $e->getResponse(),
+                previous: $e
+            );
+        } catch (ClientExceptionInterface $e) {
+            throw new HttpNetworkException(
+                request: $request,
                 previous: $e
             );
         }

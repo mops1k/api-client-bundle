@@ -23,6 +23,13 @@ interface QueryInterface
      */
     public function getParameters(): array;
 
+    /**
+     * Returns array of file paths or single file path.
+     *
+     * @return array<string, string|array<string>>|null
+     */
+    public function getFiles(): null|array;
+
     public function getBody(): ?string;
 
 
