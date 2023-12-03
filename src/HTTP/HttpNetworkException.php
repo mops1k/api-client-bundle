@@ -5,7 +5,7 @@ namespace ApiClientBundle\HTTP;
 use Psr\Http\Client\NetworkExceptionInterface;
 use Psr\Http\Message\RequestInterface;
 
-class HttpNetworkException extends \Exception implements NetworkExceptionInterface
+final class HttpNetworkException extends \Exception implements NetworkExceptionInterface
 {
     public function __construct(private readonly RequestInterface $request, ?\Throwable $previous = null)
     {
