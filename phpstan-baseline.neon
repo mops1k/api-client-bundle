@@ -1,7 +1,0 @@
-parameters:
-	ignoreErrors:
-		-
-			message: "#^Method ApiClientBundle\\\\Tests\\\\ApiClientTest\\:\\:responseDataProvider\\(\\) return type with generic interface ApiClientBundle\\\\Interfaces\\\\QueryInterface does not specify its types\\: TResponse, TErrorResponse$#"
-			count: 1
-			path: tests/ApiClientTest.php
-

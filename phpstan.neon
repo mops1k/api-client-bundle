@@ -1,32 +1,8 @@
 includes:
     - vendor/phpstan/phpstan/conf/bleedingEdge.neon
-    - vendor/phpstan/phpstan-phpunit/extension.neon
-    - vendor/phpstan/phpstan-phpunit/rules.neon
-    - phpstan-baseline.neon
-rules:
-    - PHPStan\Rules\DisallowedConstructs\DisallowedImplicitArrayCreationRule
-    - PHPStan\Rules\ForeachLoop\OverwriteVariablesWithForeachRule
-    - PHPStan\Rules\Methods\WrongCaseOfInheritedMethodRule
-    - PHPStan\Rules\Operators\OperandInArithmeticPostDecrementRule
-    - PHPStan\Rules\Operators\OperandInArithmeticPostIncrementRule
-    - PHPStan\Rules\Operators\OperandInArithmeticPreDecrementRule
-    - PHPStan\Rules\Operators\OperandInArithmeticPreIncrementRule
-    - PHPStan\Rules\Operators\OperandsInArithmeticAdditionRule
-    - PHPStan\Rules\Operators\OperandsInArithmeticDivisionRule
-    - PHPStan\Rules\Operators\OperandsInArithmeticExponentiationRule
-    - PHPStan\Rules\Operators\OperandsInArithmeticModuloRule
-    - PHPStan\Rules\Operators\OperandsInArithmeticMultiplicationRule
-    - PHPStan\Rules\Operators\OperandsInArithmeticSubtractionRule
-    - PHPStan\Rules\StrictCalls\DynamicCallOnStaticMethodsRule
-    - PHPStan\Rules\StrictCalls\StrictFunctionCallsRule
-    - PHPStan\Rules\SwitchConditions\MatchingTypeInSwitchCaseConditionRule
-    - PHPStan\Rules\VariableVariables\VariableMethodCallRule
-    - PHPStan\Rules\VariableVariables\VariableStaticMethodCallRule
-    - PHPStan\Rules\VariableVariables\VariableStaticPropertyFetchRule
-    - PHPStan\Rules\VariableVariables\VariableVariablesRule
-services:
-    - PHPStan\Rules\Operators\OperatorRuleHelper
 parameters:
+    strictRules:
+        allRules: true
     level: 6
     tmpDir: /tmp/phpstan
     paths:
@@ -35,7 +11,7 @@ parameters:
         analyseAndScan:
             - vendor/
             - var/
-            - src/Resources/skeleton
+            - ecs.php
     reportUnmatchedIgnoredErrors: false
     polluteScopeWithLoopInitialAssignments: false
     polluteScopeWithAlwaysIterableForeach: false
