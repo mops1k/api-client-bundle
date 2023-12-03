@@ -10,7 +10,7 @@ final class HttpClientException extends HttpException
 {
     public function __construct(
         RequestInterface $request,
-        ResponseInterface $response,
+        ?ResponseInterface $response,
         \Exception $previous = null,
     ) {
         parent::__construct('Http client error!', $request, $response, $previous);

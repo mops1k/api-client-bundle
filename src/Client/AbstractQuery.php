@@ -37,6 +37,11 @@ abstract class AbstractQuery implements QueryInterface
     protected string $format = 'json';
 
     /**
+     * @var array<string, string|array<string>>|null
+     */
+    protected ?array $files = null;
+
+    /**
      * @var array<string, ServiceInterface>
      */
     private array $storedServices = [];
@@ -93,5 +98,15 @@ abstract class AbstractQuery implements QueryInterface
     public function getFormat(): string
     {
         return $this->format;
+    }
+
+    /**
+     * Returns array of file paths or single file path.
+     *
+     * @return array<string, string|array<string>>|null
+     */
+    public function getFiles(): null|array
+    {
+        return $this->files;
     }
 }

@@ -7,7 +7,9 @@ use ApiClientBundle\Exception\HttpRequestException;
 use ApiClientBundle\Exception\ServerErrorException;
 use ApiClientBundle\HTTP\HttpClient;
 use ApiClientBundle\Tests\Mock\Query;
+use ApiClientBundle\Tests\Mock\QueryWithFile;
 use ApiClientBundle\Tests\Mock\Response;
+use ApiClientBundle\Tests\Mock\ResponseWithFile;
 use ApiClientBundle\Tests\Stubs\Kernel;
 use GuzzleHttp\Psr7\Response as HttpResponse;
 use Http\Discovery\Psr17Factory;
@@ -62,6 +64,30 @@ class ClientTest extends KernelTestCase
         /** @var Response $response */
         $response = $this->client->request(new Query());
         self::assertEquals('Ok!', $response->status);
+    }
+
+
+    public function testHttpClientRequestWithFileSuccess(): void
+    {
+        $mockResponseContents = \file_get_contents(__DIR__ . '/Stubs/Response/file.json');
+        $mockResponse = $this->createMock(HttpResponse::class);
+
+        $requestMatcher = new RequestMatcher();
+        $this->mockHttpClient->on($requestMatcher, function (RequestInterface $request) use ($mockResponseContents, $mockResponse) {
+            $mockResponse->method('getStatusCode')->willReturn(HttpResponseStatusEnum::STATUS_200->getCode());
+            $streamMock = (new Psr17Factory())->createStream($mockResponseContents);
+            $mockResponse->method('getBody')->willReturn($streamMock);
+
+            return $mockResponse;
+        });
+
+        /** @var ResponseWithFile $response */
+        $response = $this->client->request(new QueryWithFile());
+        self::assertEquals('image.png', $response->FileName);
+        self::assertEquals('png', $response->FileExt);
+        self::assertEquals(95, $response->FileSize);
+        self::assertEquals('lskai9gx46yftdle5nhrocbl39jsqn9b', $response->FileId);
+        self::assertEquals('https://v2.convertapi.com/d/lskai9gx46yftdle5nhrocbl39jsqn9b', $response->Url);
     }
 
     public function testHttpClientRequestServerError(): void
