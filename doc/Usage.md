@@ -22,14 +22,17 @@ class MyService extends AbstractService
 <?php
 namespace App\Remote\Api;
 
-use ApiClientBundle\Client\AbstractQuery;
+use ApiClientBundle\Client\AbstractQuery;use ApiClientBundle\Enum\HttpMethodEnum;
 
 class MyQuery extends AbstractQuery
 {
     protected ?string $path = '/some-path'
+    protected HttpMethodEnum $method = HttpMethodEnum::POST;
     protected string $format = 'json'; // Any format supported by symfony/serializer
     protected string $service = MyService::class;
     protected string $response = MyResponse::class;
+    
+    protected ?array $files = ['file' => '/some/file/path/to/image.png']; // sending file with multipart/form-data
     
     /**
      * @param array $query
