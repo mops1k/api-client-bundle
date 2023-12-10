@@ -4,10 +4,10 @@ namespace ApiClientBundle\Builder;
 
 use ApiClientBundle\Client\QueryInterface;
 
+/**
+ * @internal
+ */
 interface QueryBuilderInterface
 {
-    /**
-     * @return mixed
-     */
-    public static function build(QueryInterface $query);
+    public static function build(QueryInterface $query): mixed;
 }
