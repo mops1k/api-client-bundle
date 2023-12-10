@@ -19,7 +19,7 @@ use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
 use Symfony\Component\Serializer\SerializerInterface;
 
-final class HttpClient
+final class HttpClient implements HttpClientInterface
 {
     private RequestFactoryInterface $requestFactory;
 
