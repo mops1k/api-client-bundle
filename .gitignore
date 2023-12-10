@@ -2,4 +2,4 @@
 /vendor
 composer.lock
 .phpunit.cache
-var/cache
+/var
