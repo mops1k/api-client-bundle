@@ -6,6 +6,7 @@ use ApiClientBundle\Enum\HttpResponseStatusEnum;
 use ApiClientBundle\Exception\HttpRequestException;
 use ApiClientBundle\Exception\ServerErrorException;
 use ApiClientBundle\HTTP\HttpClient;
+use ApiClientBundle\HTTP\HttpClientInterface;
 use ApiClientBundle\Tests\Mock\Query;
 use ApiClientBundle\Tests\Mock\QueryWithFile;
 use ApiClientBundle\Tests\Mock\Response;
@@ -38,7 +39,7 @@ class ClientTest extends KernelTestCase
         self::assertInstanceOf(MockHttpClient::class, $this->mockHttpClient);
 
         /** @var HttpClient $client */
-        $client = self::getContainer()->get(HttpClient::class);
+        $client = self::getContainer()->get(HttpClientInterface::class);
 
         $reflectionProperty = new \ReflectionProperty($client, 'client');
         $reflectionProperty->setAccessible(true);

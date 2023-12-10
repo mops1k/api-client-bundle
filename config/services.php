@@ -3,6 +3,7 @@
 namespace Symfony\Component\DependencyInjection\Loader\Configurator;
 
 use ApiClientBundle\HTTP\HttpClient;
+use ApiClientBundle\HTTP\HttpClientInterface;
 use Http\Client\Common\Plugin\ErrorPlugin;
 use Symfony\Component\Serializer\SerializerInterface;
 
@@ -16,7 +17,8 @@ return static function (ContainerConfigurator $container): void {
              ->tag('api.http_client.plugin')
     ;
 
-    $services->set(HttpClient::class)
+    $services->set(HttpClientInterface::class)
+             ->class(HttpClient::class)
              ->arg('$serializer', service(SerializerInterface::class))
              ->arg('$plugins', tagged_iterator('api.http_client.plugin'))
              ->public()
