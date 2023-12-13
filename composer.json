@@ -1,6 +1,14 @@
 {
   "name": "mops1k/api-client-bundle",
   "description": "Client for making work with any api more easy",
+  "keywords": [
+    "api-sdk",
+    "http",
+    "php-http",
+    "symfony",
+    "symfony-bundle",
+    "bundle"
+  ],
   "type": "symfony-bundle",
   "require": {
     "php": ">=8.1.0",
