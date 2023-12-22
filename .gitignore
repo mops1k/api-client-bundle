@@ -3,3 +3,5 @@
 composer.lock
 .phpunit.cache
 /var
+php.Dockerfile
+compose.yaml
