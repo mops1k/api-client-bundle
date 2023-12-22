@@ -47,11 +47,6 @@ abstract class AbstractQuery implements QueryInterface
      */
     protected array $plugins = [];
 
-    /**
-     * @var array<string, ServiceInterface>
-     */
-    private array $storedServices = [];
-
     public function getPath(): ?string
     {
         return $this->path;
@@ -82,15 +77,9 @@ abstract class AbstractQuery implements QueryInterface
         return $this->headers;
     }
 
-    public function getService(): ServiceInterface
+    public function getService(): string
     {
-        if (array_key_exists($this->service, $this->storedServices)) {
-            return $this->storedServices[$this->service];
-        }
-
-        $this->storedServices[$this->service] = new $this->service();
-
-        return $this->storedServices[$this->service];
+        return $this->service;
     }
 
     /**

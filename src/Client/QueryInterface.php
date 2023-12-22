@@ -39,7 +39,10 @@ interface QueryInterface
      */
     public function getHeaders(): array;
 
-    public function getService(): ServiceInterface;
+    /**
+     * @return class-string<ServiceInterface>
+     */
+    public function getService(): string;
 
     /**
      * @return class-string<ResponseInterface>

@@ -3,6 +3,7 @@
 namespace ApiClientBundle\Builder;
 
 use ApiClientBundle\Client\QueryInterface;
+use ApiClientBundle\Client\ServiceInterface;
 use Http\Discovery\Psr17FactoryDiscovery;
 use Http\Message\MultipartStream\MultipartStreamBuilder;
 use Psr\Http\Message\StreamInterface;
@@ -12,7 +13,7 @@ class RequestBodyBuilder implements QueryBuilderInterface
     /**
      * @return array{stream: StreamInterface, boundary: null|string}|null
      */
-    public static function build(QueryInterface $query): ?array
+    public static function build(QueryInterface $query, ServiceInterface $service): ?array
     {
         $stream = null;
         $streamFactory = Psr17FactoryDiscovery::findStreamFactory();

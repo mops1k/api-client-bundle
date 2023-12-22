@@ -3,18 +3,19 @@
 namespace ApiClientBundle\Builder;
 
 use ApiClientBundle\Client\QueryInterface;
+use ApiClientBundle\Client\ServiceInterface;
 use Http\Discovery\Psr17FactoryDiscovery;
 use Psr\Http\Message\UriInterface;
 
 class RequestUriBuilder implements QueryBuilderInterface
 {
-    public static function build(QueryInterface $query): UriInterface
+    public static function build(QueryInterface $query, ServiceInterface $service): UriInterface
     {
         return Psr17FactoryDiscovery::findUriFactory()
                                     ->createUri()
-                                    ->withHost($query->getService()->getHost())
-                                    ->withPort($query->getService()->getPort())
-                                    ->withScheme($query->getService()->getScheme())
+                                    ->withHost($service->getHost())
+                                    ->withPort($service->getPort())
+                                    ->withScheme($service->getScheme())
                                     ->withPath($query->getPath() ?? '/')
                                     ->withQuery(http_build_query($query->getQuery()))
         ;
