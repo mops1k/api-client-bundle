@@ -6,6 +6,7 @@ use ApiClientBundle\Builder\RequestBodyBuilder;
 use ApiClientBundle\Builder\RequestUriBuilder;
 use ApiClientBundle\Client\QueryInterface;
 use ApiClientBundle\Client\ResponseInterface;
+use ApiClientBundle\Client\ServiceInterface;
 use ApiClientBundle\Exception\HttpRequestException;
 use ApiClientBundle\Exception\ServerErrorException;
 use Http\Client\Common\Exception\ClientErrorException;
@@ -17,6 +18,7 @@ use Http\Discovery\Psr18ClientDiscovery;
 use Psr\Http\Client\ClientExceptionInterface;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\Serializer\SerializerInterface;
 
 final class HttpClient implements HttpClientInterface
@@ -25,11 +27,13 @@ final class HttpClient implements HttpClientInterface
 
     public function __construct(
         private readonly SerializerInterface $serializer,
+        protected ContainerInterface $container,
         /**
          * @var \Traversable<Plugin>|null
          */
         protected readonly ?\Traversable $plugins = null,
         private ?ClientInterface $client = null,
+        protected RequestBodyBuilder $bodyBuilder = new RequestBodyBuilder(),
     ) {
         $this->requestFactory = Psr17FactoryDiscovery::findRequestFactory();
     }
@@ -37,12 +41,13 @@ final class HttpClient implements HttpClientInterface
     public function request(QueryInterface $query): ResponseInterface
     {
         $client = $this->getClient($query);
+        $service = $this->getService($query);
 
         $request = $this->requestFactory->createRequest(
             $query->getMethod()->value,
-            RequestUriBuilder::build($query)
+            RequestUriBuilder::build($query, $service)
         );
-        $body = RequestBodyBuilder::build($query);
+        $body = RequestBodyBuilder::build($query, $service);
         if (null !== $body) {
             $request = $request->withBody($body['stream']);
             if (null !== $body['boundary']) {
@@ -92,9 +97,10 @@ final class HttpClient implements HttpClientInterface
 
     private function getClient(QueryInterface $query): ClientInterface
     {
+        $service = $this->getService($query);
         if (!$this->client instanceof PluginClient) {
             $plugins = $this->plugins === null ? [] : \iterator_to_array($this->plugins);
-            $servicePlugins = $query->getService()->getPlugins();
+            $servicePlugins = $service->getPlugins();
             $queryPlugins = $query->getPlugins();
             $this->mergePlugins($plugins, $servicePlugins);
             $this->mergePlugins($plugins, $queryPlugins);
@@ -126,5 +132,15 @@ final class HttpClient implements HttpClientInterface
                 $basePlugins[] = $plugin;
             }
         }
+    }
+
+    private function getService(QueryInterface $query): ServiceInterface
+    {
+        $serviceClass = $query->getService();
+        if (!$this->container->has($serviceClass)) {
+            return new $serviceClass();
+        }
+
+        return $this->container->get($serviceClass);
     }
 }
