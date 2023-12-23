@@ -2,11 +2,14 @@
 
 namespace ApiClientBundle\Tests;
 
+use ApiClientBundle\Client\CollectionResponseInterface;
 use ApiClientBundle\Enum\HttpResponseStatusEnum;
 use ApiClientBundle\Exception\HttpRequestException;
 use ApiClientBundle\Exception\ServerErrorException;
 use ApiClientBundle\HTTP\HttpClient;
 use ApiClientBundle\HTTP\HttpClientInterface;
+use ApiClientBundle\Tests\Mock\CollectionQuery;
+use ApiClientBundle\Tests\Mock\CollectionResponse;
 use ApiClientBundle\Tests\Mock\Query;
 use ApiClientBundle\Tests\Mock\QueryWithFile;
 use ApiClientBundle\Tests\Mock\Response;
@@ -67,6 +70,25 @@ class ClientTest extends KernelTestCase
         self::assertEquals('Ok!', $response->status);
     }
 
+    public function testHttpClientCollectionRequestSuccess(): void
+    {
+        $mockResponseContents = \file_get_contents(__DIR__ . '/Stubs/Response/collection.json');
+        $mockResponse = $this->createMock(HttpResponse::class);
+
+        $requestMatcher = new RequestMatcher();
+        $this->mockHttpClient->on($requestMatcher, function (RequestInterface $request) use ($mockResponseContents, $mockResponse) {
+            $mockResponse->method('getStatusCode')->willReturn(HttpResponseStatusEnum::STATUS_200->getCode());
+            $streamMock = (new Psr17Factory())->createStream($mockResponseContents);
+            $mockResponse->method('getBody')->willReturn($streamMock);
+
+            return $mockResponse;
+        });
+
+        /** @var CollectionResponse $response */
+        $response = $this->client->request(new CollectionQuery());
+        self::assertInstanceOf(CollectionResponseInterface::class, $response);
+        self::assertEquals(\json_decode($mockResponseContents, true, 512, JSON_THROW_ON_ERROR), $response->data);
+    }
 
     public function testHttpClientRequestWithFileSuccess(): void
     {
@@ -84,6 +106,7 @@ class ClientTest extends KernelTestCase
 
         /** @var ResponseWithFile $response */
         $response = $this->client->request(new QueryWithFile());
+        self::assertInstanceOf(ResponseWithFile::class, $response);
         self::assertEquals('image.png', $response->FileName);
         self::assertEquals('png', $response->FileExt);
         self::assertEquals(95, $response->FileSize);
