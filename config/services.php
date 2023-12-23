@@ -5,6 +5,7 @@ namespace Symfony\Component\DependencyInjection\Loader\Configurator;
 use ApiClientBundle\Builder\RequestUriBuilder;
 use ApiClientBundle\HTTP\HttpClient;
 use ApiClientBundle\HTTP\HttpClientInterface;
+use ApiClientBundle\Serializer\CollectionDenormalizer;
 use Http\Client\Common\Plugin\ErrorPlugin;
 use Symfony\Component\Serializer\SerializerInterface;
 
@@ -25,4 +26,7 @@ return static function (ContainerConfigurator $container): void {
              ->arg('$plugins', tagged_iterator('api.http_client.plugin'))
              ->public()
     ;
+
+    $services->set(CollectionDenormalizer::class)
+        ->tag('serializer.normalizer');
 };
