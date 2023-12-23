@@ -60,6 +60,6 @@ class CollectionDenormalizer implements DenormalizerInterface, SerializerAwareIn
 
     public function supportsDenormalization(mixed $data, string $type, string $format = null): bool
     {
-        return array_is_list($data) && is_a($type, CollectionResponseInterface::class, true);
+        return is_array($data) && array_is_list($data) && is_a($type, CollectionResponseInterface::class, true);
     }
 }
