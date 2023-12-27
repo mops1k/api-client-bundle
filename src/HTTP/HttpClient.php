@@ -120,17 +120,20 @@ final class HttpClient implements HttpClientInterface
      */
     private function mergePlugins(array &$basePlugins, array $plugins): void
     {
+        // Compute search index
+        $existingPlugins = [];
         foreach ($basePlugins as $key => $basePlugin) {
-            $basePluginName = $basePlugin::class;
-            foreach ($plugins as $plugin) {
-                if ($basePluginName === $plugin::class) {
-                    $basePlugins[$key] = $plugin;
+            $existingPlugins[$basePlugin::class] = $key;
+        }
 
-                    break;
-                }
+        foreach ($plugins as $plugin) {
+            if (\array_key_exists($plugin::class, $existingPlugins)) {
+                $basePlugins[$existingPlugins[$plugin::class]] = $plugin;
 
-                $basePlugins[] = $plugin;
+                continue;
             }
+
+            $basePlugins[] = $plugin;
         }
     }
 
