@@ -38,6 +38,12 @@ final class HttpClient implements HttpClientInterface
         $this->requestFactory = Psr17FactoryDiscovery::findRequestFactory();
     }
 
+    /**
+     * @throws HttpClientException
+     * @throws HttpRequestException
+     * @throws ServerErrorException
+     * @throws HttpNetworkException
+     */
     public function request(QueryInterface $query): ResponseInterface
     {
         $client = $this->getClient($query);
@@ -47,6 +53,7 @@ final class HttpClient implements HttpClientInterface
             $query->getMethod()->value,
             RequestUriBuilder::build($query, $service)
         );
+
         $body = RequestBodyBuilder::build($query, $service);
         if (null !== $body) {
             $request = $request->withBody($body['stream']);
