@@ -2,14 +2,14 @@
 
 namespace ApiClientBundle\Tests;
 
-use ApiClientBundle\Client\CollectionResponseInterface;
+use ApiClientBundle\Client\ListResponseInterface;
 use ApiClientBundle\Enum\HttpResponseStatusEnum;
 use ApiClientBundle\Exception\HttpRequestException;
 use ApiClientBundle\Exception\ServerErrorException;
 use ApiClientBundle\HTTP\HttpClient;
 use ApiClientBundle\HTTP\HttpClientInterface;
-use ApiClientBundle\Tests\Mock\CollectionQuery;
-use ApiClientBundle\Tests\Mock\CollectionResponse;
+use ApiClientBundle\Tests\Mock\ListQuery;
+use ApiClientBundle\Tests\Mock\ListResponse;
 use ApiClientBundle\Tests\Mock\Query;
 use ApiClientBundle\Tests\Mock\QueryWithFile;
 use ApiClientBundle\Tests\Mock\Response;
@@ -84,9 +84,9 @@ class ClientTest extends KernelTestCase
             return $mockResponse;
         });
 
-        /** @var CollectionResponse $response */
-        $response = $this->client->request(new CollectionQuery());
-        self::assertInstanceOf(CollectionResponseInterface::class, $response);
+        /** @var ListResponse $response */
+        $response = $this->client->request(new ListQuery());
+        self::assertInstanceOf(ListResponseInterface::class, $response);
         self::assertEquals(\json_decode($mockResponseContents, true, 512, JSON_THROW_ON_ERROR), $response->data);
     }
 
