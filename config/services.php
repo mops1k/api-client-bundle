@@ -5,7 +5,7 @@ namespace Symfony\Component\DependencyInjection\Loader\Configurator;
 use ApiClientBundle\Builder\RequestUriBuilder;
 use ApiClientBundle\HTTP\HttpClient;
 use ApiClientBundle\HTTP\HttpClientInterface;
-use ApiClientBundle\Serializer\CollectionDenormalizer;
+use ApiClientBundle\Serializer\ListResponseDenormalizer;
 use Http\Client\Common\Plugin\ErrorPlugin;
 use Symfony\Component\Serializer\SerializerInterface;
 
@@ -27,6 +27,6 @@ return static function (ContainerConfigurator $container): void {
              ->public()
     ;
 
-    $services->set(CollectionDenormalizer::class)
+    $services->set(ListResponseDenormalizer::class)
         ->tag('serializer.normalizer');
 };
