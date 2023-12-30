@@ -2,9 +2,12 @@
 
 namespace ApiClientBundle\Client;
 
-use ApiClientBundle\Attribute\CollectionResponseField;
+use ApiClientBundle\Attribute\ListResponseField;
 
-#[CollectionResponseField('items')]
-interface CollectionResponseInterface extends ResponseInterface
+/**
+ * @deprecated Will be removed in version 1.1. Use instead: ApiClientBundle\Client\ListResponseInterface
+ */
+#[ListResponseField('items')]
+interface CollectionResponseInterface extends ListResponseInterface
 {
 }

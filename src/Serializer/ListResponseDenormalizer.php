@@ -2,13 +2,13 @@
 
 namespace ApiClientBundle\Serializer;
 
-use ApiClientBundle\Attribute\CollectionResponseField;
-use ApiClientBundle\Client\CollectionResponseInterface;
+use ApiClientBundle\Attribute\ListResponseField;
+use ApiClientBundle\Client\ListResponseInterface;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
 use Symfony\Component\Serializer\SerializerAwareInterface;
 use Symfony\Component\Serializer\SerializerAwareTrait;
 
-class CollectionDenormalizer implements DenormalizerInterface, SerializerAwareInterface
+class ListResponseDenormalizer implements DenormalizerInterface, SerializerAwareInterface
 {
     use SerializerAwareTrait;
 
@@ -21,12 +21,12 @@ class CollectionDenormalizer implements DenormalizerInterface, SerializerAwareIn
     {
         $reflectionClass = new \ReflectionClass($type);
         $reflectionInterfaces = $reflectionClass->getInterfaces();
-        /** @var CollectionResponseField|null $attribute */
+        /** @var ListResponseField|null $attribute */
         $attribute = null;
         foreach ($reflectionInterfaces as $reflectionInterface) {
-            $interfaceAttributes = $reflectionInterface->getAttributes(CollectionResponseField::class);
+            $interfaceAttributes = $reflectionInterface->getAttributes();
             foreach ($interfaceAttributes as $interfaceAttribute) {
-                if (!is_a($interfaceAttribute->getName(), CollectionResponseField::class, true)) {
+                if (!is_a($interfaceAttribute->getName(), ListResponseField::class, true)) {
                     continue;
                 }
 
@@ -40,9 +40,9 @@ class CollectionDenormalizer implements DenormalizerInterface, SerializerAwareIn
             }
         }
 
-        $classAttributes = $reflectionClass->getAttributes(CollectionResponseField::class);
+        $classAttributes = $reflectionClass->getAttributes();
         foreach ($classAttributes as $classAttribute) {
-            if (!is_a($classAttribute->getName(), CollectionResponseField::class, true)) {
+            if (!is_a($classAttribute->getName(), ListResponseField::class, true)) {
                 continue;
             }
 
@@ -60,6 +60,6 @@ class CollectionDenormalizer implements DenormalizerInterface, SerializerAwareIn
 
     public function supportsDenormalization(mixed $data, string $type, string $format = null): bool
     {
-        return is_array($data) && array_is_list($data) && is_a($type, CollectionResponseInterface::class, true);
+        return is_array($data) && array_is_list($data) && is_a($type, ListResponseInterface::class, true);
     }
 }
