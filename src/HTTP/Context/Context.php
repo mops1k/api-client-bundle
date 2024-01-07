@@ -9,7 +9,7 @@ class Context implements ContextInterface
 {
     public function __construct(
         private readonly RequestInterface $request,
-        private readonly ?ResponseInterface $response
+        private readonly ?ResponseInterface $response,
     ) {
     }
 
