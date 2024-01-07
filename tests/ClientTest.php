@@ -203,6 +203,7 @@ class ClientTest extends KernelTestCase
         $builtRequest = null;
         $this->mockHttpClient->on($requestMatcher, function (RequestInterface $request) use (&$builtRequest) {
             $builtRequest = $request;
+
             throw new NetworkException('NetworkException', $request);
         });
 
