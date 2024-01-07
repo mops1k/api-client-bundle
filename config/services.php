@@ -3,6 +3,8 @@
 namespace Symfony\Component\DependencyInjection\Loader\Configurator;
 
 use ApiClientBundle\Builder\RequestUriBuilder;
+use ApiClientBundle\HTTP\Context\ContextStorage;
+use ApiClientBundle\HTTP\Context\ContextStorageInterface;
 use ApiClientBundle\HTTP\HttpClient;
 use ApiClientBundle\HTTP\HttpClientInterface;
 use ApiClientBundle\Serializer\ListResponseDenormalizer;
@@ -19,14 +21,19 @@ return static function (ContainerConfigurator $container): void {
              ->tag('api.http_client.plugin')
     ;
 
+    $services->set(ContextStorageInterface::class)
+        ->class(ContextStorage::class)
+    ;
+
     $services->set(HttpClientInterface::class)
              ->class(HttpClient::class)
              ->arg('$serializer', service(SerializerInterface::class))
              ->arg('$container', service('service_container'))
+             ->arg('$contextStorage', service(ContextStorageInterface::class))
              ->arg('$plugins', tagged_iterator('api.http_client.plugin'))
              ->public()
     ;
 
     $services->set(ListResponseDenormalizer::class)
-        ->tag('serializer.normalizer');
+             ->tag('serializer.normalizer');
 };

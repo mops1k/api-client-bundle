@@ -6,8 +6,10 @@ use ApiClientBundle\Client\ListResponseInterface;
 use ApiClientBundle\Enum\HttpResponseStatusEnum;
 use ApiClientBundle\Exception\HttpRequestException;
 use ApiClientBundle\Exception\ServerErrorException;
+use ApiClientBundle\HTTP\Context\ContextStorage;
 use ApiClientBundle\HTTP\HttpClient;
 use ApiClientBundle\HTTP\HttpClientInterface;
+use ApiClientBundle\HTTP\HttpNetworkException;
 use ApiClientBundle\Tests\Mock\ListQuery;
 use ApiClientBundle\Tests\Mock\ListResponse;
 use ApiClientBundle\Tests\Mock\Query;
@@ -16,6 +18,7 @@ use ApiClientBundle\Tests\Mock\Response;
 use ApiClientBundle\Tests\Mock\ResponseWithFile;
 use ApiClientBundle\Tests\Stubs\Kernel;
 use GuzzleHttp\Psr7\Response as HttpResponse;
+use Http\Client\Exception\NetworkException;
 use Http\Discovery\Psr17Factory;
 use Http\Discovery\Psr18ClientDiscovery;
 use Http\Discovery\Strategy\MockClientStrategy;
@@ -68,6 +71,41 @@ class ClientTest extends KernelTestCase
         /** @var Response $response */
         $response = $this->client->request(new Query());
         self::assertEquals('Ok!', $response->status);
+    }
+
+    public function testHttpClientContextWithRequestSuccess(): void
+    {
+        $mockResponseContents = \file_get_contents(__DIR__ . '/Stubs/Response/ok.json');
+        $mockResponse = $this->createMock(HttpResponse::class);
+
+        $requestMatcher = new RequestMatcher();
+        $builtRequest = $builtResponse = null;
+        $this->mockHttpClient->on(
+            $requestMatcher,
+            function (RequestInterface $request) use ($mockResponseContents, $mockResponse, &$builtRequest, &$builtResponse) {
+                $mockResponse->method('getStatusCode')->willReturn(HttpResponseStatusEnum::STATUS_200->getCode());
+                $streamMock = (new Psr17Factory())->createStream($mockResponseContents);
+                $mockResponse->method('getBody')->willReturn($streamMock);
+
+                $builtRequest = $request;
+                $builtResponse = $mockResponse;
+
+                return $mockResponse;
+            }
+        );
+
+        $query = new Query();
+        /** @var Response $response */
+        $response = $this->client->request($query);
+        self::assertEquals('Ok!', $response->status);
+        self::assertSame('Ok!', $response->status);
+
+        $context = ContextStorage::get($query);
+        self::assertSame($builtRequest, $context->getRequest());
+        self::assertSame($builtResponse, $context->getResponse());
+
+        ContextStorage::clear();
+        self::assertNull(ContextStorage::get($query));
     }
 
     public function testHttpClientCollectionRequestSuccess(): void
@@ -156,6 +194,23 @@ class ClientTest extends KernelTestCase
             self::assertSame($mockResponse, $exception->getResponse());
             self::assertEquals($exception->getMessage(), HttpResponseStatusEnum::STATUS_404->value);
             self::assertEquals($exception->getCode(), HttpResponseStatusEnum::STATUS_404->getCode());
+        }
+    }
+
+    public function testHttpClientNetworkHttpError(): void
+    {
+        $requestMatcher = new RequestMatcher();
+        $builtRequest = null;
+        $this->mockHttpClient->on($requestMatcher, function (RequestInterface $request) use (&$builtRequest) {
+            $builtRequest = $request;
+
+            throw new NetworkException('NetworkException', $request);
+        });
+
+        try {
+            $this->client->request(new Query());
+        } catch (HttpNetworkException $exception) {
+            self::assertSame($builtRequest, $exception->getRequest());
         }
     }
 }

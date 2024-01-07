@@ -9,6 +9,7 @@ use ApiClientBundle\Client\ResponseInterface;
 use ApiClientBundle\Client\ServiceInterface;
 use ApiClientBundle\Exception\HttpRequestException;
 use ApiClientBundle\Exception\ServerErrorException;
+use ApiClientBundle\HTTP\Context\ContextStorageInterface;
 use Http\Client\Common\Exception\ClientErrorException;
 use Http\Client\Common\Exception\ServerErrorException as BaseServerErrorException;
 use Http\Client\Common\Plugin;
@@ -27,15 +28,17 @@ final class HttpClient implements HttpClientInterface
 
     public function __construct(
         private readonly SerializerInterface $serializer,
-        protected ContainerInterface $container,
+        private readonly ContainerInterface $container,
+        private readonly ContextStorageInterface $contextStorage,
         /**
          * @var \Traversable<Plugin>|null
          */
-        protected readonly ?\Traversable $plugins = null,
+        private readonly ?\Traversable $plugins = null,
         private ?ClientInterface $client = null,
         protected RequestBodyBuilder $bodyBuilder = new RequestBodyBuilder(),
     ) {
         $this->requestFactory = Psr17FactoryDiscovery::findRequestFactory();
+        $this->contextStorage::clear();
     }
 
     /**
@@ -98,6 +101,12 @@ final class HttpClient implements HttpClientInterface
             throw new HttpNetworkException(
                 request: $request,
                 previous: $e
+            );
+        } finally {
+            $this->contextStorage->add(
+                query: $query,
+                request: $request,
+                response: $psr17Response ?? null
             );
         }
     }
