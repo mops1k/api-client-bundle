@@ -165,47 +165,6 @@ class ClientTest extends KernelTestCase
         self::assertNull(ContextStorage::get($queryWithFile));
     }
 
-    /**
-     * Parse arbitrary multipart/form-data content
-     * Note: null result or null values for headers or value means error
-     *
-     * @return list<array{"headers": array<string, string>|null,"value": string|null}>|null
-     */
-    private function parseMultipartContent(?string $content): ?array
-    {
-        if (null === $content) {
-            return null;
-        }
-
-        preg_match('#--(.*)--#', $content, $matches);
-        $boundary = $matches[1] ?? null;
-        if (null === $boundary) {
-            return null;
-        }
-
-        $sections = array_map('trim', explode("--{$boundary}", $content));
-        $parts = [];
-        foreach ($sections as $section) {
-            if ($section === '' || $section === '--') {
-                continue;
-            }
-
-            $fields = explode("\r\n\r\n", $section);
-            if (preg_match_all("/([a-z0-9-_]+)\s*:\s*([^\r\n]+)/iu", $fields[0] ?? '', $matches, PREG_SET_ORDER) === 3) {
-                $headers = [];
-                foreach ($matches as $match) {
-                    $headers[$match[1]] = $match[2];
-                }
-            } else {
-                $headers = null;
-            }
-
-            $parts[] = ['headers' => $headers, 'value' => $fields[1] ?? null];
-        }
-
-        return count($parts) === 0 ? null : $parts;
-    }
-
     public function testHttpClientSerializationFail(): void
     {
         $mockResponse = $this->createMock(HttpResponse::class);
@@ -306,5 +265,46 @@ class ClientTest extends KernelTestCase
         } catch (HttpNetworkException $exception) {
             self::assertSame($builtRequest, $exception->getRequest());
         }
+    }
+
+    /**
+     * Parse arbitrary multipart/form-data content
+     * Note: null result or null values for headers or value means error
+     *
+     * @return list<array{"headers": array<string, string>|null,"value": string|null}>|null
+     */
+    private function parseMultipartContent(?string $content): ?array
+    {
+        if (null === $content) {
+            return null;
+        }
+
+        preg_match('#--(.*)--#', $content, $matches);
+        $boundary = $matches[1] ?? null;
+        if (null === $boundary) {
+            return null;
+        }
+
+        $sections = array_map('trim', explode("--{$boundary}", $content));
+        $parts = [];
+        foreach ($sections as $section) {
+            if ($section === '' || $section === '--') {
+                continue;
+            }
+
+            $fields = explode("\r\n\r\n", $section);
+            if (preg_match_all("/([a-z0-9-_]+)\s*:\s*([^\r\n]+)/iu", $fields[0] ?? '', $matches, PREG_SET_ORDER) === 3) {
+                $headers = [];
+                foreach ($matches as $match) {
+                    $headers[$match[1]] = $match[2];
+                }
+            } else {
+                $headers = null;
+            }
+
+            $parts[] = ['headers' => $headers, 'value' => $fields[1] ?? null];
+        }
+
+        return count($parts) === 0 ? null : $parts;
     }
 }
