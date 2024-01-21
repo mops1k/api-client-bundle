@@ -5,6 +5,10 @@ namespace ApiClientBundle\Client;
 use ApiClientBundle\Enum\HttpMethodEnum;
 use Http\Client\Common\Plugin;
 
+/**
+ * @template TService of ServiceInterface
+ * @template TResponse of ResponseInterface
+ */
 interface QueryInterface
 {
     /**
@@ -40,12 +44,12 @@ interface QueryInterface
     public function getHeaders(): array;
 
     /**
-     * @return class-string<ServiceInterface>
+     * @return class-string<TService>
      */
     public function getService(): string;
 
     /**
-     * @return class-string<ResponseInterface>
+     * @return class-string<TResponse>
      */
     public function getResponse(): string;
 

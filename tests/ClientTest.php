@@ -48,7 +48,6 @@ class ClientTest extends KernelTestCase
         $client = self::getContainer()->get(HttpClientInterface::class);
 
         $reflectionProperty = new \ReflectionProperty($client, 'client');
-        $reflectionProperty->setAccessible(true);
         $reflectionProperty->setValue($client, $this->mockHttpClient);
 
         $this->client = $client;
@@ -68,8 +67,8 @@ class ClientTest extends KernelTestCase
             return $mockResponse;
         });
 
-        /** @var Response $response */
         $response = $this->client->request(new Query());
+        self::assertInstanceOf(Response::class, $response);
         self::assertEquals('Ok!', $response->status);
     }
 
@@ -95,10 +94,9 @@ class ClientTest extends KernelTestCase
         );
 
         $query = new Query();
-        /** @var Response $response */
         $response = $this->client->request($query);
+        self::assertInstanceOf(Response::class, $response);
         self::assertEquals('Ok!', $response->status);
-        self::assertSame('Ok!', $response->status);
 
         $context = ContextStorage::get($query);
         self::assertSame($builtRequest, $context->getRequest());
@@ -122,9 +120,9 @@ class ClientTest extends KernelTestCase
             return $mockResponse;
         });
 
-        /** @var ListResponse $response */
         $response = $this->client->request(new ListQuery());
         self::assertInstanceOf(ListResponseInterface::class, $response);
+        self::assertInstanceOf(ListResponse::class, $response);
         self::assertEquals(\json_decode($mockResponseContents, true, 512, JSON_THROW_ON_ERROR), $response->data);
     }
 
@@ -142,7 +140,6 @@ class ClientTest extends KernelTestCase
             return $mockResponse;
         });
 
-        /** @var ResponseWithFile $response */
         $response = $this->client->request(new QueryWithFile());
         self::assertInstanceOf(ResponseWithFile::class, $response);
         self::assertEquals('image.png', $response->FileName);

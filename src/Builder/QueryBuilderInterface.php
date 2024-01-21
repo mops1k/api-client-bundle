@@ -10,5 +10,10 @@ use ApiClientBundle\Client\ServiceInterface;
  */
 interface QueryBuilderInterface
 {
+    /**
+     * @template TQuery of QueryInterface
+     *
+     * @param TQuery $query
+     */
     public static function build(QueryInterface $query, ServiceInterface $service): mixed;
 }
