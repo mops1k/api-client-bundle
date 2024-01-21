@@ -111,6 +111,9 @@ final class HttpClient implements HttpClientInterface
         }
     }
 
+    /**
+     * @param QueryInterface<ServiceInterface, ResponseInterface> $query
+     */
     private function getClient(QueryInterface $query): ClientInterface
     {
         $service = $this->getService($query);
@@ -153,6 +156,9 @@ final class HttpClient implements HttpClientInterface
         }
     }
 
+    /**
+     * @param QueryInterface<ServiceInterface, ResponseInterface> $query
+     */
     private function getService(QueryInterface $query): ServiceInterface
     {
         $serviceClass = $query->getService();
