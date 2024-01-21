@@ -20,6 +20,7 @@ use Psr\Http\Client\ClientExceptionInterface;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\Serializer\Exception\ExceptionInterface;
 use Symfony\Component\Serializer\SerializerInterface;
 
 final class HttpClient implements HttpClientInterface
@@ -43,6 +44,7 @@ final class HttpClient implements HttpClientInterface
 
     /**
      * @throws HttpClientException
+     * @throws HttpClientSerializationException
      * @throws HttpRequestException
      * @throws ServerErrorException
      * @throws HttpNetworkException
@@ -69,11 +71,15 @@ final class HttpClient implements HttpClientInterface
             $request = $request->withHeader($name, $value);
         }
 
+        $psr17Response = null;
+        $content = '';
+
         try {
             $psr17Response = $client->sendRequest($request);
+            $content = $psr17Response->getBody()->getContents();
 
             return $this->serializer->deserialize(
-                $psr17Response->getBody()->getContents(),
+                $content,
                 $query->getResponse(),
                 $query->getFormat()
             );
@@ -100,6 +106,14 @@ final class HttpClient implements HttpClientInterface
         } catch (ClientExceptionInterface $e) {
             throw new HttpNetworkException(
                 request: $request,
+                previous: $e
+            );
+        } catch (ExceptionInterface $e) {
+            throw new HttpClientSerializationException(
+                request: $request,
+                response: $psr17Response,
+                content: $content,
+                /* @phpstan-ignore-next-line */
                 previous: $e
             );
         } finally {

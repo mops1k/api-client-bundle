@@ -59,7 +59,7 @@ class ClientTest extends KernelTestCase
         $mockResponse = $this->createMock(HttpResponse::class);
 
         $requestMatcher = new RequestMatcher();
-        $this->mockHttpClient->on($requestMatcher, function (RequestInterface $request) use ($mockResponseContents, $mockResponse) {
+        $this->mockHttpClient->on($requestMatcher, function () use ($mockResponseContents, $mockResponse) {
             $mockResponse->method('getStatusCode')->willReturn(HttpResponseStatusEnum::STATUS_200->getCode());
             $streamMock = (new Psr17Factory())->createStream($mockResponseContents);
             $mockResponse->method('getBody')->willReturn($streamMock);
@@ -112,7 +112,7 @@ class ClientTest extends KernelTestCase
         $mockResponse = $this->createMock(HttpResponse::class);
 
         $requestMatcher = new RequestMatcher();
-        $this->mockHttpClient->on($requestMatcher, function (RequestInterface $request) use ($mockResponseContents, $mockResponse) {
+        $this->mockHttpClient->on($requestMatcher, function () use ($mockResponseContents, $mockResponse) {
             $mockResponse->method('getStatusCode')->willReturn(HttpResponseStatusEnum::STATUS_200->getCode());
             $streamMock = (new Psr17Factory())->createStream($mockResponseContents);
             $mockResponse->method('getBody')->willReturn($streamMock);
@@ -132,7 +132,7 @@ class ClientTest extends KernelTestCase
         $mockResponse = $this->createMock(HttpResponse::class);
 
         $requestMatcher = new RequestMatcher();
-        $this->mockHttpClient->on($requestMatcher, function (RequestInterface $request) use ($mockResponseContents, $mockResponse) {
+        $this->mockHttpClient->on($requestMatcher, function () use ($mockResponseContents, $mockResponse) {
             $mockResponse->method('getStatusCode')->willReturn(HttpResponseStatusEnum::STATUS_200->getCode());
             $streamMock = (new Psr17Factory())->createStream($mockResponseContents);
             $mockResponse->method('getBody')->willReturn($streamMock);
@@ -149,13 +149,31 @@ class ClientTest extends KernelTestCase
         self::assertEquals('https://v2.convertapi.com/d/lskai9gx46yftdle5nhrocbl39jsqn9b', $response->Url);
     }
 
+    public function testHttpClientSerializationFail(): void
+    {
+        $mockResponse = $this->createMock(HttpResponse::class);
+
+        $requestMatcher = new RequestMatcher();
+        $this->mockHttpClient->on($requestMatcher, function () use ($mockResponse) {
+            $mockResponse->method('getStatusCode')->willReturn(HttpResponseStatusEnum::STATUS_200->getCode());
+            $streamMock = (new Psr17Factory())->createStream('fail=true');
+            $mockResponse->method('getBody')->willReturn($streamMock);
+
+            return $mockResponse;
+        });
+
+        $query = new Query();
+        $this->expectExceptionMessage('Http client serialization error for incoming data: "fail=true".');
+        $this->client->request($query);
+    }
+
     public function testHttpClientRequestServerError(): void
     {
         $mockResponseContents = \file_get_contents(__DIR__ . '/Stubs/Response/ok.json');
         $mockResponse = $this->createMock(HttpResponse::class);
 
         $requestMatcher = new RequestMatcher();
-        $this->mockHttpClient->on($requestMatcher, function (RequestInterface $request) use ($mockResponseContents, $mockResponse) {
+        $this->mockHttpClient->on($requestMatcher, function () use ($mockResponseContents, $mockResponse) {
             $mockResponse->method('getStatusCode')->willReturn(HttpResponseStatusEnum::STATUS_500->getCode());
             $streamMock = (new Psr17Factory())->createStream($mockResponseContents);
             $mockResponse->method('getBody')->willReturn($streamMock);
@@ -177,7 +195,7 @@ class ClientTest extends KernelTestCase
         $mockResponse = $this->createMock(HttpResponse::class);
 
         $requestMatcher = new RequestMatcher();
-        $this->mockHttpClient->on($requestMatcher, function (RequestInterface $request) use ($mockResponseContents, $mockResponse) {
+        $this->mockHttpClient->on($requestMatcher, function () use ($mockResponseContents, $mockResponse) {
             $mockResponse->method('getStatusCode')->willReturn(HttpResponseStatusEnum::STATUS_404->getCode());
             $streamMock = (new Psr17Factory())->createStream($mockResponseContents);
             $mockResponse->method('getBody')->willReturn($streamMock);
