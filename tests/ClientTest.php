@@ -8,6 +8,7 @@ use ApiClientBundle\Exception\HttpRequestException;
 use ApiClientBundle\Exception\ServerErrorException;
 use ApiClientBundle\HTTP\Context\ContextStorage;
 use ApiClientBundle\HTTP\HttpClient;
+use ApiClientBundle\HTTP\HttpClientException;
 use ApiClientBundle\HTTP\HttpClientInterface;
 use ApiClientBundle\HTTP\HttpNetworkException;
 use ApiClientBundle\Tests\Mock\ListQuery;
@@ -18,6 +19,7 @@ use ApiClientBundle\Tests\Mock\Response;
 use ApiClientBundle\Tests\Mock\ResponseWithFile;
 use ApiClientBundle\Tests\Stubs\Kernel;
 use GuzzleHttp\Psr7\Response as HttpResponse;
+use Http\Client\Common\Exception\ClientErrorException;
 use Http\Client\Exception\NetworkException;
 use Http\Discovery\Psr17Factory;
 use Http\Discovery\Psr18ClientDiscovery;
@@ -209,6 +211,28 @@ class ClientTest extends KernelTestCase
             self::assertSame($mockResponse, $exception->getResponse());
             self::assertEquals($exception->getMessage(), HttpResponseStatusEnum::STATUS_404->value);
             self::assertEquals($exception->getCode(), HttpResponseStatusEnum::STATUS_404->getCode());
+        }
+    }
+
+    public function testHttpClientError(): void
+    {
+        $mockResponseContents = \file_get_contents(__DIR__ . '/Stubs/Response/ok.json');
+        $mockResponse = $this->createMock(HttpResponse::class);
+
+        $requestMatcher = new RequestMatcher();
+        $this->mockHttpClient->on($requestMatcher, function (RequestInterface $request) use ($mockResponseContents, $mockResponse) {
+            $mockResponse->method('getStatusCode')->willReturn(HttpResponseStatusEnum::STATUS_101->getCode());
+            $streamMock = (new Psr17Factory())->createStream($mockResponseContents);
+            $mockResponse->method('getBody')->willReturn($streamMock);
+
+            throw new ClientErrorException('ClientErrorException', $request, $mockResponse);
+        });
+
+        try {
+            $this->client->request(new Query());
+        } catch (HttpClientException $exception) {
+            self::assertSame($mockResponse, $exception->getResponse());
+            self::assertEquals($exception->getCode(), HttpResponseStatusEnum::STATUS_101->getCode());
         }
     }
 
