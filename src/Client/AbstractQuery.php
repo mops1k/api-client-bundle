@@ -5,6 +5,9 @@ namespace ApiClientBundle\Client;
 use ApiClientBundle\Enum\HttpMethodEnum;
 use Http\Client\Common\Plugin;
 
+/**
+ * @implements QueryInterface<ServiceInterface, ResponseInterface>
+ */
 abstract class AbstractQuery implements QueryInterface
 {
     protected ?string $path = null;
